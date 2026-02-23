@@ -67,16 +67,25 @@ You need two things from the MODX site:
 - **SQL dump** — export from phpMyAdmin (`site.sql`)
 - **Assets folder** — the `/assets/` directory from the MODX site
 
-Run the migration:
+**Important:** always clean the previous site's content first, then migrate:
+
 ```bash
+# 1. Clean previous site content
+find astro-theme/src/content/pages -mindepth 1 -delete 2>/dev/null
+rm -f  astro-theme/src/content/site-config.json
+rm -f  astro-theme/src/content/redirects.json
+find   astro-theme/src/assets  -mindepth 1 -delete 2>/dev/null
+find   astro-theme/public/assets -mindepth 1 -delete 2>/dev/null
+
+# 2. Migrate  (--out MUST point to src/content, not astro-theme)
 node cli/migrate.js \
   --sql   /path/to/site.sql \
   --assets /path/to/assets \
-  --out   astro-theme \
+  --out   astro-theme/src/content \
   --site  https://yourdomain.com
 ```
 
-Output: the `astro-theme/src/content/` folder is filled with your site's pages.
+Output: `astro-theme/src/content/` is filled with your site's pages and config.
 
 ---
 
@@ -243,7 +252,7 @@ This does: **migrate → build → deploy** with timing per step.
 | Task | Command |
 |------|---------|
 | Install dependencies | `npm install` (in `cli/` and `astro-theme/`) |
-| Migrate one site | `node cli/migrate.js --sql x --assets y --out astro-theme` |
+| Migrate one site | `node cli/migrate.js --sql x --assets y --out astro-theme/src/content` |
 | Build | `cd astro-theme && npm run build` |
 | Preview | `cd astro-theme && npm run preview` |
 | Edit (Keystatic) | `KEYSTATIC=true npm run dev` |
