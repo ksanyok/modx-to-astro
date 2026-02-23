@@ -317,10 +317,9 @@ Options:
 | `extractClientConfig(sql)` | Reads ClientConfig settings |
 | `extractRedirects(sql)` | Reads SEO Suite redirects |
 | `copyAssets(srcDir, destDir)` | Copies + deduplicates asset files |
-| `convertToWebP(dir)` | Converts JPG/PNG → WebP using sharp, returns path map |
-| `patchImagePaths(outPath, map)` | Rewrites `/assets/foo.jpg` → `/assets/foo.webp` in all JSON |
+| `validateImages(dir)` | Removes corrupt/unreadable images before Astro build |
 
-> **Image pipeline:** assets are copied to **`src/assets/`** (Astro `<Image>` generates hashed `srcset` variants at build time) and mirrored to **`public/assets/`** (static fallback for favicon, `og:image` meta, raw HTML blocks, and any `<img>` tags that cannot be resolved at build time). The utility `src/utils/imageLoader.ts` maps runtime path strings (e.g. `/assets/uploads/foo.webp`) to Astro `ImageMetadata` via `import.meta.glob`.
+> **Image pipeline:** original assets (JPG/PNG/SVG) are copied to **`src/assets/`** where Astro's native `<Image>` tag converts them to WebP/AVIF and generates responsive `srcset` at build time. Files are also mirrored to **`public/assets/`** (static fallback for favicon, `og:image` meta, raw HTML blocks). The utility `src/utils/imageLoader.ts` maps runtime path strings (e.g. `/assets/uploads/foo.jpg`) to Astro `ImageMetadata` via `import.meta.glob`.
 
 ### Unit Tests
 

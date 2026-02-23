@@ -174,30 +174,26 @@ async function main() {
 
   // Copy assets
   log.section('Step 4: Copying media assets');
-  // Primary destination: src/assets/ — Astro <Image> reads these at build time
-  // to generate hashed, responsive srcset variants (/_astro/name.hash_360w.webp etc.)
+  // Primary: src/assets/ — Astro <Image> reads originals and natively converts to
+  // WebP/AVIF at build time while generating hashed srcset variants per viewport width.
+  // No manual WebP conversion — Astro handles it all.
   const srcAssetsDir = path.join(OUT_PATH, '..', 'assets');
   await copyAssets(ASSETS_PATH, srcAssetsDir);
 
-  // Step 5: Convert images to WebP
-  // Astro <Image> handles all responsive resizing via srcset — no manual resize needed.
-  log.section('Step 5: Converting images to WebP');
-  const pathMap = await convertToWebP(srcAssetsDir);
-  if (pathMap.size > 0) {
-    patchImagePaths(OUT_PATH, pathMap);
-    log.info(`WebP: ${pathMap.size} images converted, paths updated`);
-  } else {
-    log.info('WebP: sharp not available or no images to convert');
-  }
+  // Validate images — remove corrupt/unreadable files before Astro's build step.
+  // Astro fails the entire build if its Vite image plugin cannot read metadata from
+  // a file included in import.meta.glob. Validation ensures a clean asset set.
+  const removed = await validateImages(srcAssetsDir);
+  if (removed > 0) log.warn(`Skipped ${removed} corrupt/unreadable image(s)`);
 
-  // Step 6: Mirror assets to public/assets/ (static fallback)
+  // Step 5: Mirror assets to public/assets/ (static fallback)
   // Required for:
   //   - Favicon (<link rel="icon" href="/assets/...">)
-  //   - og:image meta tags (absolute external URL)
-  //   - Raw HTML content blocks (type:"html") with embedded <img src="/assets/...">
-  //   - Fallback <img> tags in components when imageLoader.ts cannot resolve
-  // src/assets/ is the source-of-truth; public/assets/ mirrors it post-conversion.
-  log.section('Step 6: Mirroring assets to public/ (static fallback)');
+  //   - og:image meta tags (absolute external URL used by crawlers)
+  //   - Raw HTML blocks (type:"html") with embedded <img src="/assets/...">
+  //   - Any fallback <img> in components where imageLoader.ts returns null
+  // src/assets/ is the source-of-truth; public/ just mirrors it.
+  log.section('Step 5: Mirroring assets to public/ (static fallback)');
   const publicAssetsDir = path.join(OUT_PATH, '..', '..', 'public', 'assets');
   await fs.emptyDir(publicAssetsDir);
   await fs.copy(srcAssetsDir, publicAssetsDir, { overwrite: true });
@@ -1838,83 +1834,41 @@ async function copyAssets(srcDir, destDir) {
 }
 
 /**
- * Convert all JPG/JPEG/PNG files in publicAssetsDir to WebP using sharp.
- * Deletes originals after successful conversion.
- * Returns a Map of { '/assets/foo.jpg' → '/assets/foo.webp' }.
+ * Validate all image files in dir — remove corrupt/unreadable ones before Astro build.
+ * Astro's Vite image plugin processes ALL files matched by import.meta.glob at build time;
+ * a single corrupt file causes the entire build to fail.
+ * Uses sharp if available; falls back to a basic file-size check.
+ * Returns count of removed files.
  */
-async function convertToWebP(publicAssetsDir) {
-  const pathMap = new Map();
+async function validateImages(dir) {
   let sharp;
-  try {
-    sharp = require('sharp');
-  } catch {
-    return pathMap; // sharp not available
-  }
+  try { sharp = require('sharp'); } catch { /* sharp optional */ }
+  const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.gif', '.avif', '.webp']);
+  let removed = 0;
 
-  const EXTS = new Set(['.jpg', '.jpeg', '.png']);
-
-  async function walk(dir, urlPrefix) {
+  async function walk(d) {
     let entries;
-    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    try { entries = fs.readdirSync(d, { withFileTypes: true }); } catch { return; }
     for (const entry of entries) {
-      if (entry.isDirectory()) {
-        await walk(path.join(dir, entry.name), `${urlPrefix}${entry.name}/`);
+      const full = path.join(d, entry.name);
+      if (entry.isDirectory()) { await walk(full); continue; }
+      const ext = path.extname(entry.name).toLowerCase();
+      if (!IMAGE_EXTS.has(ext)) continue;
+      let valid = true;
+      if (sharp) {
+        try { await sharp(full).metadata(); } catch { valid = false; }
       } else {
-        const ext = path.extname(entry.name).toLowerCase();
-        if (!EXTS.has(ext)) continue;
-        const srcFile = path.join(dir, entry.name);
-        const webpName = entry.name.slice(0, -ext.length) + '.webp';
-        const destFile = path.join(dir, webpName);
-        // Skip if WebP already exists
-        if (fs.existsSync(destFile)) {
-          pathMap.set(`${urlPrefix}${entry.name}`, `${urlPrefix}${webpName}`);
-          try { fs.unlinkSync(srcFile); } catch {}
-          continue;
-        }
-        try {
-          await sharp(srcFile).webp({ quality: 85 }).toFile(destFile);
-          fs.unlinkSync(srcFile);
-          pathMap.set(`${urlPrefix}${entry.name}`, `${urlPrefix}${webpName}`);
-        } catch {
-          // keep original if conversion fails (e.g. SVG or corrupt file)
-        }
+        // Fallback: files under 16 bytes are definitely corrupt/empty
+        try { valid = fs.statSync(full).size > 16; } catch { valid = false; }
+      }
+      if (!valid) {
+        log.warn(`Removing corrupt image: ${full}`);
+        try { fs.unlinkSync(full); removed++; } catch {}
       }
     }
   }
-
-  await walk(publicAssetsDir, '/assets/');
-  return pathMap;
-}
-
-/**
- * Replace old image paths with WebP paths in all generated JSON content files.
- * Updates pages/*.json and site-config.json (logo, favicon).
- */
-function patchImagePaths(outPath, pathMap) {
-  if (pathMap.size === 0) return;
-
-  // Build a single regex that matches any of the old paths (URL-encoded or not)
-  // Sorted by length descending to avoid partial replacements
-  const sortedOld = [...pathMap.keys()].sort((a, b) => b.length - a.length);
-  const escapedParts = sortedOld.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  const regex = new RegExp(escapedParts.join('|'), 'g');
-
-  function replaceIn(filePath) {
-    if (!fs.existsSync(filePath)) return;
-    const original = fs.readFileSync(filePath, 'utf-8');
-    const updated = original.replace(regex, match => pathMap.get(match) || match);
-    if (updated !== original) fs.writeFileSync(filePath, updated, 'utf-8');
-  }
-
-  // Update all page JSON files
-  const pagesDir = path.join(outPath, 'pages');
-  if (fs.existsSync(pagesDir)) {
-    for (const file of fs.readdirSync(pagesDir)) {
-      if (file.endsWith('.json')) replaceIn(path.join(pagesDir, file));
-    }
-  }
-  // Update site-config (logo, favicon, etc.)
-  replaceIn(path.join(outPath, 'site-config.json'));
+  await walk(dir);
+  return removed;
 }
 
 function countFiles(dir) {
