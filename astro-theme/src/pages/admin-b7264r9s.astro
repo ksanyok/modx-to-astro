@@ -234,7 +234,7 @@ const configured      = !!passwordHash;
   <div id="app">
     <header id="topbar">
       <span class="site-name">{siteName}</span>
-      {siteUrl && <a class="site-url icon-btn" href={siteUrl} target="_blank" rel="noopener">↗ Site</a>}
+      <a class="site-url icon-btn" id="site-btn" href="/" target="_blank" rel="noopener">↗ Site</a>
       <button class="icon-btn rebuild-btn" id="rebuild-btn" style={rebuildWebhook ? '' : 'display:none'}>
         ▲ Rebuild
       </button>
@@ -395,12 +395,13 @@ const configured      = !!passwordHash;
     document.getElementById('editor-textarea').value = json;
     setStatus(`${json.length.toLocaleString()} chars · ${(json.length / 1024).toFixed(1)} KB`);
 
-    // Live link
+    // Live link — always use current domain, never the baked-in build URL
     const link = document.getElementById('editor-live-link');
-    if (link && siteUrl) {
+    if (link) {
+      const origin = window.location.origin;
       const idx = slug === 'index' || slug === 'home';
       const pageSlug = idx ? '' : ('/' + slug);
-      link.href = siteUrl.replace(/\/$/, '') + pageSlug;
+      link.href = origin + pageSlug;
       link.style.display = '';
     }
   }
@@ -457,6 +458,10 @@ const configured      = !!passwordHash;
 
   // ── Init ───────────────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
+    // Fix Site button to always point to current domain
+    const siteBtn = document.getElementById('site-btn');
+    if (siteBtn) siteBtn.href = window.location.origin;
+
     // Auto-login if session still active
     if (sessionStorage.getItem(SESSION_KEY) === '1') {
       showApp();
