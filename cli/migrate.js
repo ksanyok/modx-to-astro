@@ -1732,6 +1732,36 @@ function buildSiteConfig(resources, clientConfig, processedPages = []) {
   // anatag: 'analytics' = GA4/GA, 'tagmanager' = GTM
   const analyticsType = clientConfig.anatag || 'analytics';
 
+  // Build ready-to-inject tracking script blocks from analyticsId
+  // Also merge any raw custom head/body code stored in clientconfig
+  let trackingCodeHead = '';
+  let trackingCodeBody = '';
+
+  if (analyticsId) {
+    if (analyticsType === 'tagmanager') {
+      trackingCodeHead =
+        `<!-- Google Tag Manager -->\n` +
+        `<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${analyticsId}');</scr` + `ipt>\n` +
+        `<!-- End Google Tag Manager -->`;
+      trackingCodeBody =
+        `<!-- Google Tag Manager (noscript) -->\n` +
+        `<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=${analyticsId}" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>\n` +
+        `<!-- End Google Tag Manager (noscript) -->`;
+    } else {
+      // GA4
+      trackingCodeHead =
+        `<!-- Google tag (gtag.js) -->\n` +
+        `<script async src="https://www.googletagmanager.com/gtag/js?id=${analyticsId}"></scr` + `ipt>\n` +
+        `<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${analyticsId}');</scr` + `ipt>`;
+    }
+  }
+
+  // Append raw custom tracking code from clientconfig (any field named customhead / custom_head / headcode etc.)
+  const rawCustomHead = clientConfig.customhead || clientConfig.custom_head || clientConfig.headcode || clientConfig.head_code || '';
+  const rawCustomBody = clientConfig.custombody || clientConfig.custom_body || clientConfig.bodycode || clientConfig.body_code || '';
+  if (rawCustomHead) trackingCodeHead = (trackingCodeHead ? trackingCodeHead + '\n' : '') + rawCustomHead;
+  if (rawCustomBody) trackingCodeBody = (trackingCodeBody ? trackingCodeBody + '\n' : '') + rawCustomBody;
+
   return {
     companyName: clientConfig.site_name || clientConfig.companyname || clientConfig.company_name || 
                  clientConfig.firmenname || resources[0]?.pagetitle || 'Company',
@@ -1747,6 +1777,8 @@ function buildSiteConfig(resources, clientConfig, processedPages = []) {
     showCompanyName,
     analyticsId,
     analyticsType,
+    trackingCodeHead,
+    trackingCodeBody,
     siteUrl: SITE_URL,
     logo,
     favicon,

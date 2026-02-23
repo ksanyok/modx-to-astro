@@ -41,6 +41,8 @@ const showCompanyName = siteConfig.showCompanyName !== false; // default true
 const maxLayoutWidth = siteConfig.maxLayoutWidth || 1200;
 const analyticsId = siteConfig.analyticsId || '';
 const analyticsType = siteConfig.analyticsType || 'analytics';
+const trackingCodeHead = siteConfig.trackingCodeHead || '';
+const trackingCodeBody = siteConfig.trackingCodeBody || '';
 
 // Auto-extract OG image from page blocks if not explicitly provided
 function findFirstImage(blocks: any[]): string {
@@ -89,7 +91,7 @@ if (heroBlock?.backgroundImage) {
   }
 }
 ---
-<BaseLayout title={title} description={description} lang={lang} canonicalUrl={canonicalUrl} ogImage={absoluteOgImage} heroPreloadSrc={heroPreloadSrc} heroPreloadSrcset={heroPreloadSrcset} theme={theme} favicon={siteConfig.favicon} maxLayoutWidth={maxLayoutWidth} analyticsId={analyticsId} analyticsType={analyticsType}>
+<BaseLayout title={title} description={description} lang={lang} canonicalUrl={canonicalUrl} ogImage={absoluteOgImage} heroPreloadSrc={heroPreloadSrc} heroPreloadSrcset={heroPreloadSrcset} theme={theme} favicon={siteConfig.favicon} maxLayoutWidth={maxLayoutWidth} analyticsId={analyticsId} analyticsType={analyticsType} trackingCodeHead={trackingCodeHead} trackingCodeBody={trackingCodeBody}>
   <div class="min-h-screen flex flex-col">
   <Header navigation={navigation} companyName={showCompanyName ? companyName : ''} logo={logo} socialLinks={socialLinks} transparent={hasHero} />
   <main class="flex-1" id="content">

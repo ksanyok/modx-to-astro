@@ -131,6 +131,18 @@ export default config({
           },
           { label: 'Theme Colors & Fonts' },
         ),
+        trackingCodeHead: fields.text({
+          label: 'Tracking Code <head>',
+          description: 'Script tags injected into <head> (Google Analytics, GTM, Facebook Pixel, etc.)',
+          multiline: true,
+          defaultValue: '',
+        }),
+        trackingCodeBody: fields.text({
+          label: 'Tracking Code <body>',
+          description: 'Script/noscript tags injected right after <body> opens (e.g. GTM noscript fallback)',
+          multiline: true,
+          defaultValue: '',
+        }),
       },
     }),
   },

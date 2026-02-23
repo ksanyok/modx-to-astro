@@ -16,6 +16,10 @@ interface Props {
   maxLayoutWidth?: number;
   analyticsId?: string;
   analyticsType?: string;
+  /** Raw HTML injected into <head> — tracking codes (GTM, GA4, Pixel, etc.) */
+  trackingCodeHead?: string;
+  /** Raw HTML injected at start of <body> — GTM noscript fallback etc. */
+  trackingCodeBody?: string;
   theme?: {
     primaryColor?: string;
     secondaryColor?: string;
@@ -41,6 +45,8 @@ const {
   maxLayoutWidth = 1200,
   analyticsId = '',
   analyticsType = 'analytics',
+  trackingCodeHead = '',
+  trackingCodeBody = '',
   theme = {},
 } = Astro.props;
 
@@ -159,55 +165,12 @@ const googleFontsUrl = fallbackFontNames.length > 0
     <title>{title}</title>
     <!-- b7264r9s -->
 
-    {/* Google Tag Manager — lazy loaded after first user interaction to avoid render impact */}
-    {analyticsId && analyticsType === 'tagmanager' && (
-      <script is:inline define:vars={{ analyticsId }}>
-        function _loadGTM() {
-          if (window.__gtmLoaded) return;
-          window.__gtmLoaded = true;
-          (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-          new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-          j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-          'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-          })(window,document,'script','dataLayer', analyticsId);
-        }
-        ['click','scroll','keydown','touchstart'].forEach(function(e){
-          document.addEventListener(e, _loadGTM, {once:true, passive:true});
-        });
-        setTimeout(_loadGTM, 5000); // fallback: load after 5s even without interaction
-      </script>
-    )}
-
-    {/* Google Analytics 4 — lazy loaded after first user interaction */}
-    {analyticsId && analyticsType === 'analytics' && (
-      <script is:inline define:vars={{ analyticsId }}>
-        function _loadGA() {
-          if (window.__gaLoaded) return;
-          window.__gaLoaded = true;
-          var s = document.createElement('script');
-          s.async = true;
-          s.src = 'https://www.googletagmanager.com/gtag/js?id=' + analyticsId;
-          document.head.appendChild(s);
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', analyticsId);
-        }
-        ['click','scroll','keydown','touchstart'].forEach(function(e){
-          document.addEventListener(e, _loadGA, {once:true, passive:true});
-        });
-        setTimeout(_loadGA, 5000);
-      </script>
-    )}
+    {/* Tracking codes (GTM, GA4, Facebook Pixel, etc.) — injected from site-config.trackingCodeHead */}
+    {trackingCodeHead && <Fragment set:html={trackingCodeHead} />}
   </head>
   <body class="bg-(--color-bg) text-(--color-text) font-sans antialiased" style={themeVars || undefined}>
-    {/* GTM noscript fallback */}
-    {analyticsId && analyticsType === 'tagmanager' && (
-      <noscript>
-        <iframe src={`https://www.googletagmanager.com/ns.html?id=${analyticsId}`}
-          height="0" width="0" style="display:none;visibility:hidden"></iframe>
-      </noscript>
-    )}
+    {/* Tracking codes for <body> — GTM noscript fallback etc., injected from site-config.trackingCodeBody */}
+    {trackingCodeBody && <Fragment set:html={trackingCodeBody} />}
     <slot />
 
     <script>
