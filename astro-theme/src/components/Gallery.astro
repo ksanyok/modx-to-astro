@@ -1,4 +1,7 @@
 ---
+import { Image } from 'astro:assets';
+import { resolveImage } from '../utils/imageLoader';
+
 interface Props {
   images: Array<{
     src: string;
@@ -16,6 +19,11 @@ const colClasses: Record<number, string> = {
   3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
   4: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4',
 };
+
+// Resolve all images at build time
+const resolvedImages = await Promise.all(
+  images.map(img => resolveImage(img.src))
+);
 ---
 {images.length > 0 && (
   <Fragment>
@@ -28,15 +36,25 @@ const colClasses: Record<number, string> = {
           data-index={idx}
           aria-label={img.alt ? `Bild vergrößern: ${img.alt}` : 'Bild vergrößern'}
         >
-          <img
-            src={img.src}
-            alt={img.alt || ''}
-            width={img.width}
-            height={img.height}
-            loading="lazy"
-            decoding="async"
-            class="w-full h-56 sm:h-64 object-cover transition-transform duration-600 ease-out group-hover:scale-105"
-          />
+          {resolvedImages[idx] ? (
+            <Image
+              src={resolvedImages[idx]!}
+              alt={img.alt || ''}
+              widths={[360, 720, 1080]}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              loading="lazy"
+              decoding="async"
+              class="w-full h-56 sm:h-64 object-cover transition-transform duration-600 ease-out group-hover:scale-105"
+            />
+          ) : (
+            <img
+              src={img.src}
+              alt={img.alt || ''}
+              loading="lazy"
+              decoding="async"
+              class="w-full h-56 sm:h-64 object-cover transition-transform duration-600 ease-out group-hover:scale-105"
+            />
+          )}
         </button>
       ))}
     </div>

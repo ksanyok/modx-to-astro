@@ -174,12 +174,13 @@ async function main() {
 
   // Copy assets
   log.section('Step 4: Copying media assets');
-  const publicAssetsDir = path.join(OUT_PATH, '..', '..', 'public', 'assets');
-  await copyAssets(ASSETS_PATH, publicAssetsDir);
+  // Images go to src/assets/ so Astro's <Image> can generate responsive srcset at build time
+  const srcAssetsDir = path.join(OUT_PATH, '..', 'assets');
+  await copyAssets(ASSETS_PATH, srcAssetsDir);
 
-  // Step 5: Convert images to WebP
+  // Step 5: Convert images to WebP (no resize — Astro generates sizes via srcset)
   log.section('Step 5: Converting images to WebP');
-  const pathMap = await convertToWebP(publicAssetsDir);
+  const pathMap = await convertToWebP(srcAssetsDir);
   if (pathMap.size > 0) {
     patchImagePaths(OUT_PATH, pathMap);
     log.info(`WebP: ${pathMap.size} images converted, paths updated`);
@@ -1775,7 +1776,7 @@ async function copyAssets(srcDir, destDir) {
 
   // Clean previous assets for idempotency
   await fs.emptyDir(destDir);
-  log.verbose('Cleaned public/assets/ directory');
+  log.verbose('Cleaned src/assets/ directory');
 
   // Copy uploads directory
   const uploadsDirs = ['uploads', 'userupload'];
@@ -1856,20 +1857,7 @@ async function convertToWebP(publicAssetsDir) {
           continue;
         }
         try {
-          // Resize if image dimensions exceed practical display limits.
-          // Max 1600px for regular images (saves 60-80% bytes for 2048px+ photos).
-          const meta = await sharp(srcFile).metadata();
-          const MAX = 1200;
-          let pipeline = sharp(srcFile);
-          if (meta.width && meta.height) {
-            const longest = Math.max(meta.width, meta.height);
-            if (longest > MAX) {
-              pipeline = meta.width >= meta.height
-                ? pipeline.resize({ width: MAX, withoutEnlargement: true })
-                : pipeline.resize({ height: MAX, withoutEnlargement: true });
-            }
-          }
-          await pipeline.webp({ quality: 85 }).toFile(destFile);
+          await sharp(srcFile).webp({ quality: 85 }).toFile(destFile);
           fs.unlinkSync(srcFile);
           pathMap.set(`${urlPrefix}${entry.name}`, `${urlPrefix}${webpName}`);
         } catch {

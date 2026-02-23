@@ -84,8 +84,7 @@ const googleFontsUrl = fontNames.length > 0
     <link rel="canonical" href={canonical} />
     {favicon && <link rel="icon" href={favicon} />}
 
-    {/* Preload LCP hero image for fast paint */}
-    {heroImage && <link rel="preload" as="image" href={heroImage} fetchpriority="high" />}
+    {/* Preload LCP hero image handled by Astro <Image loading="eager" fetchpriority="high"> in Hero component */}
     
     {/* Google Fonts — loaded async to avoid render-blocking (media=print trick) */}
     {googleFontsUrl && (

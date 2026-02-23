@@ -1,4 +1,7 @@
 ---
+import { Image } from 'astro:assets';
+import { resolveImage } from '../utils/imageLoader';
+
 interface Props {
   src: string;
   alt?: string;
@@ -14,8 +17,6 @@ interface Props {
 const {
   src = '',
   alt = '',
-  width,
-  height,
   cover = false,
   borderless = false,
   position = '',
@@ -29,20 +30,33 @@ const positionMap: Record<string, string> = {
   'img-cover-pos-l': 'object-left',
   'img-cover-pos-r': 'object-right',
 };
+
+const resolvedImage = await resolveImage(src);
+
+const imgClass = [
+  cover ? 'w-full h-full object-cover' : 'max-w-full h-auto',
+  borderless ? '' : 'rounded-xl',
+  positionMap[position] || '',
+].filter(Boolean).join(' ');
 ---
-{src && (
-  <img
-    src={src}
+{resolvedImage ? (
+  <Image
+    src={resolvedImage}
     alt={alt}
-    width={width}
-    height={height}
+    widths={[400, 800, 1200]}
+    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 800px"
     loading={loading}
     decoding="async"
     fetchpriority={fetchpriority}
-    class:list={[
-      cover ? 'w-full h-full object-cover' : 'max-w-full h-auto',
-      borderless ? '' : 'rounded-xl',
-      positionMap[position] || '',
-    ]}
+    class={imgClass}
   />
-)}
+) : src ? (
+  <img
+    src={src}
+    alt={alt}
+    loading={loading}
+    decoding="async"
+    fetchpriority={fetchpriority}
+    class={imgClass}
+  />
+) : null}

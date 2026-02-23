@@ -1,4 +1,7 @@
 ---
+import { Image } from 'astro:assets';
+import { resolveImage } from '../utils/imageLoader';
+
 interface Props {
   title?: string;
   subtitle?: string;
@@ -42,6 +45,7 @@ const tAlignClasses: Record<string, string> = {
 };
 
 const hasMedia = !!(backgroundImage || backgroundVideo);
+const resolvedBgImage = backgroundImage ? await resolveImage(backgroundImage) : null;
 ---
 <section
   class:list={[
@@ -63,10 +67,27 @@ const hasMedia = !!(backgroundImage || backgroundVideo);
       <source src={backgroundVideo} type="video/mp4" />
     </video>
   ) : backgroundImage ? (
-    <div
-      class="absolute inset-0 bg-cover bg-no-repeat hero-bg-animate"
-      style={`background-image: url('${backgroundImage}'); background-position: ${backgroundPosition};`}
-    />
+    resolvedBgImage ? (
+      <Image
+        src={resolvedBgImage}
+        alt=""
+        widths={[640, 1280, 1920]}
+        sizes="100vw"
+        loading="eager"
+        fetchpriority="high"
+        class="absolute inset-0 w-full h-full object-cover hero-bg-animate"
+        style={`object-position: ${backgroundPosition}`}
+      />
+    ) : (
+      <img
+        src={backgroundImage}
+        alt=""
+        loading="eager"
+        fetchpriority="high"
+        class="absolute inset-0 w-full h-full object-cover hero-bg-animate"
+        style={`object-position: ${backgroundPosition}`}
+      />
+    )
   ) : (
     <Fragment>
       <div class="absolute inset-0 bg-(--color-primary)" />

@@ -10,6 +10,7 @@ kp-out/
 astro-theme/src/content/pages/
 astro-theme/src/content/site-config.json
 astro-theme/src/content/redirects.json
+astro-theme/src/assets/
 astro-theme/public/assets/
 
 # Environment
