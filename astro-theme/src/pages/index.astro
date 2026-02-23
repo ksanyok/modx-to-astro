@@ -1,0 +1,44 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import ContentRenderer from '../components/ContentRenderer.astro';
+import { getEntry } from 'astro:content';
+
+// Load site config via Content Collections
+let siteConfig: any = {};
+try {
+  const entry = await getEntry('siteConfig', 'config');
+  siteConfig = entry?.data || {};
+} catch {
+  // Fallback: direct import if content collections not synced yet
+  try {
+    const mod = await import('../content/site-config.json');
+    siteConfig = mod.default || {};
+  } catch { siteConfig = {}; }
+}
+
+// Load homepage via Content Collections
+let pageData: any = { title: siteConfig.companyName || 'Welcome', description: '', blocks: [] };
+try {
+  const entry = await getEntry('pages', 'index');
+  if (entry?.data) {
+    pageData = entry.data;
+  }
+} catch {
+  // Fallback: direct import
+  try {
+    const mod = await import('../content/pages/index.json');
+    pageData = mod.default || pageData;
+  } catch {}
+}
+
+const hasHero = pageData.blocks?.some((b: any) => b.type === 'hero') || false;
+---
+<PageLayout
+  title={pageData.title}
+  description={pageData.description}
+  siteConfig={siteConfig}
+  hasHero={hasHero}
+  blocks={pageData.blocks || []}
+>
+  <ContentRenderer blocks={pageData.blocks || []} />
+</PageLayout>

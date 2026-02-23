@@ -1,0 +1,221 @@
+---
+/**
+ * ContentRenderer — dynamically renders an array of content blocks.
+ * This is the core component that maps migrated ContentBlocks data to Astro components.
+ * @author ksanyok | buyreadysite.com | b7264r9s
+ */
+import Section from './Section.astro';
+import Hero from './Hero.astro';
+import Heading from './Heading.astro';
+import TextBlock from './TextBlock.astro';
+import ImageBlock from './ImageBlock.astro';
+import Grid from './Grid.astro';
+import Gallery from './Gallery.astro';
+import Slider from './Slider.astro';
+import FeatureList from './FeatureList.astro';
+import Divider from './Divider.astro';
+import ContactForm from './ContactForm.astro';
+
+interface ContentBlock {
+  type: string;
+  [key: string]: any;
+}
+
+interface Props {
+  blocks: ContentBlock[];
+}
+
+const { blocks = [] } = Astro.props;
+
+function extractYoutubeId(url: string): string {
+  if (!url) return '';
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/))([a-zA-Z0-9_-]{11})/);
+  return match ? match[1] : url;
+}
+---
+{blocks.map((block) => {
+  switch (block.type) {
+    case 'hero':
+      return (
+        <Hero
+          title={block.title}
+          subtitle={block.subtitle}
+          backgroundImage={block.backgroundImage}
+          backgroundVideo={block.backgroundVideo}
+          backgroundPosition={block.backgroundPosition}
+          overlayOpacity={block.overlayOpacity}
+          minHeight={block.minHeight}
+          textAlign={block.textAlign}
+          verticalAlign={block.verticalAlign}
+        />
+      );
+    
+    case 'section':
+      return (
+        <Section
+          marginTop={block.marginTop}
+          marginBottom={block.marginBottom}
+          backgroundColor={block.backgroundColor}
+          textAlign={block.textAlign}
+          anchor={block.anchor}
+          fullWidth={block.fullWidth}
+        >
+          {block.children && (
+            <Astro.self blocks={block.children} />
+          )}
+        </Section>
+      );
+
+    case 'heading':
+      return (
+        <Heading
+          text={block.text}
+          level={block.level}
+          textAlign={block.textAlign}
+        />
+      );
+
+    case 'text':
+      return (
+        <TextBlock content={block.content} maxWidth={block.maxWidth} cardLink={block.cardLink} />
+      );
+
+    case 'image':
+      return (
+        <ImageBlock
+          src={block.src}
+          alt={block.alt}
+          width={block.width}
+          height={block.height}
+          cover={block.cover}
+          borderless={block.borderless}
+          position={block.position}
+          loading="lazy"
+        />
+      );
+
+    case 'grid':
+      return (
+        <Grid columns={block.columns}>
+          {block.cells?.map((cell: ContentBlock[]) => (
+            <div>
+              <Astro.self blocks={cell} />
+            </div>
+          ))}
+        </Grid>
+      );
+
+    case 'gallery':
+      return (
+        <Gallery images={block.images} columns={block.columns} />
+      );
+
+    case 'slider':
+      return (
+        <Slider slides={block.slides} />
+      );
+
+    case 'features':
+      return (
+        <FeatureList items={block.items} />
+      );
+
+    case 'divider':
+      return (
+        <Divider
+          width={block.width}
+          marginTop={block.marginTop}
+          marginBottom={block.marginBottom}
+        />
+      );
+
+    case 'contact-form':
+      return (
+        <ContactForm
+          title={block.title}
+          submitLabel={block.submitLabel}
+          recipientEmail={block.recipientEmail}
+        />
+      );
+
+    case 'html':
+      return (
+        <div class="prose max-w-none overflow-hidden [&_iframe]:w-full [&_iframe]:max-w-full [&_iframe]:rounded-xl" set:html={block.content} />
+      );
+
+    case 'accordion':
+      return (
+        <div class="space-y-3 my-8">
+          {block.items?.map((item: any) => (
+            <details class="group border border-(--color-border) rounded-xl overflow-hidden">
+              <summary class="cursor-pointer px-5 sm:px-6 py-4 bg-(--color-bg-alt)/80 hover:bg-(--color-bg-section) font-semibold text-(--color-text) flex justify-between items-center gap-4 transition-colors duration-200" aria-expanded="false">
+                <span class="text-sm sm:text-base">{item.title}</span>
+                <svg class="w-4 h-4 shrink-0 text-(--color-text-muted) transition-transform duration-300 group-open:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </summary>
+              <div class="px-5 sm:px-6 py-4 text-sm leading-relaxed text-(--color-text-light) prose prose-sm max-w-none" set:html={item.content} />
+            </details>
+          ))}
+        </div>
+      );
+
+    case 'buttons':
+      return (
+        <div class="flex flex-wrap gap-3 my-6">
+          {block.links?.map((link: any, i: number) => (
+            <a
+              href={link.file || link.url || undefined}
+              target={link.newTab ? '_blank' : undefined}
+              rel={link.newTab ? 'noopener noreferrer' : undefined}
+              class:list={[
+                'inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-sm transition-all',
+                !(link.file || link.url) ? 'hidden' : '',
+                i === 0
+                  ? 'bg-(--color-accent) text-white hover:bg-(--color-accent-dark) shadow-sm hover:shadow-md hover:shadow-(--color-accent)/20 active:scale-[0.98]'
+                  : 'bg-(--color-bg-section) text-(--color-text) hover:bg-(--color-border-light)',
+              ]}
+            >
+              {link.text || 'Link'}
+            </a>
+          ))}
+        </div>
+      );
+
+    case 'video':
+      return (
+        <div class="my-8">
+          <video controls preload="metadata" class="w-full rounded-xl shadow-sm" aria-label={block.title || 'Video'}>
+            <source src={block.src} type="video/mp4" />
+          </video>
+        </div>
+      );
+
+    case 'youtube':
+      return (
+        <div class="my-8 aspect-video rounded-xl overflow-hidden shadow-sm">
+          <iframe
+            src={`https://www.youtube.com/embed/${extractYoutubeId(block.url)}`}
+            title={block.title || 'YouTube video'}
+            class="w-full h-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+            loading="lazy"
+          />
+        </div>
+      );
+
+    case 'file':
+      return (
+        <a href={block.src} class="inline-flex items-center gap-2.5 px-5 py-3 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 hover:border-slate-300 my-3 text-sm font-medium text-(--color-text) transition-colors" download>
+          <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          {block.title || 'Download'}
+        </a>
+      );
+
+    default:
+      return null;
+  }
+})}

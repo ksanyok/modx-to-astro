@@ -1,0 +1,224 @@
+# ═══════════════════════════════════════════════════════════════════════
+# MODX → Astro  ·  GitLab CI/CD Pipeline
+# ═══════════════════════════════════════════════════════════════════════
+#
+# Full pipeline: migrate → test → build → deploy (zero-downtime)
+#
+# Required CI/CD Variables (Settings → CI/CD → Variables):
+#   SSH_PRIVATE_KEY   – Private key for rsync deploy (type: File or Variable)
+#   DEPLOY_HOST       – e.g. user@your-server.com      (or set below)
+#   DEPLOY_PATH       – e.g. /var/www/vhosts/domain.ch  (or set below)
+#
+# Optional variables:
+#   SQL_PATH          – Path to SQL dump inside repo (default: data/dump.sql)
+#   ASSETS_PATH       – Path to assets dir inside repo (default: data/assets)
+#   SITE_DOMAIN       – Production domain for sitemap/canonical URLs
+#
+# Repo structure per site:
+#   repo/
+#   ├── data/
+#   │   ├── dump.sql
+#   │   └── assets/
+#   ├── cli/               (migration scripts)
+#   ├── astro-theme/       (master theme)
+#   └── .gitlab-ci.yml     (this file)
+# ═══════════════════════════════════════════════════════════════════════
+
+stages:
+  - migrate
+  - test
+  - build
+  - deploy
+
+variables:
+  NODE_VERSION: "20"
+  # ── Per-site overrides (set in CI/CD Variables or fork) ──
+  DEPLOY_HOST: "user@your-server.com"
+  DEPLOY_PATH: "/var/www/vhosts/domain.ch/httpdocs"
+  SITE_DOMAIN: "example.ch"
+  SQL_PATH: "data/dump.sql"
+  ASSETS_PATH: "data/assets"
+
+# ─── Shared cache ─────────────────────────────────────────────
+
+.node_cache:
+  cache:
+    key: "${CI_COMMIT_REF_SLUG}"
+    paths:
+      - cli/node_modules/
+      - astro-theme/node_modules/
+
+# ═══════════════════════════════════════════════════════════════
+# Stage 1: MIGRATE  –  SQL + assets → JSON content
+# ═══════════════════════════════════════════════════════════════
+
+migrate:
+  stage: migrate
+  image: node:${NODE_VERSION}-alpine
+  extends: .node_cache
+  script:
+    - cd cli && npm ci
+    - node migrate.js
+        --sql "../${SQL_PATH}"
+        --assets "../${ASSETS_PATH}"
+        --out ../astro-theme/src/content
+        --site "https://${SITE_DOMAIN}"
+        --verbose
+    - echo "──────────────────────────────────"
+    - echo "Migration complete"
+    - echo "Pages → $(ls ../astro-theme/src/content/pages/*.json 2>/dev/null | wc -l)"
+    - echo "Assets → $(find ../astro-theme/public/assets -type f 2>/dev/null | wc -l)"
+    - echo "──────────────────────────────────"
+  artifacts:
+    paths:
+      - astro-theme/src/content/
+      - astro-theme/public/assets/
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+# ═══════════════════════════════════════════════════════════════
+# Stage 2: TEST  –  Unit tests for CLI
+# ═══════════════════════════════════════════════════════════════
+
+test:
+  stage: test
+  image: node:${NODE_VERSION}-alpine
+  extends: .node_cache
+  script:
+    - cd cli && npm ci
+    - npx jest --verbose --ci
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+# ═══════════════════════════════════════════════════════════════
+# Stage 3: BUILD  –  Astro static site generation
+# ═══════════════════════════════════════════════════════════════
+
+build:
+  stage: build
+  image: node:${NODE_VERSION}-alpine
+  extends: .node_cache
+  dependencies:
+    - migrate
+  script:
+    - cd astro-theme && npm ci
+    - npx astro build
+    - |
+      PAGE_COUNT=$(find dist -name '*.html' | wc -l)
+      echo "══════════════════════════════════"
+      echo "Build complete: ${PAGE_COUNT} pages"
+      echo "Size: $(du -sh dist | cut -f1)"
+      echo "══════════════════════════════════"
+  artifacts:
+    paths:
+      - astro-theme/dist/
+    expire_in: 1 week
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+# ═══════════════════════════════════════════════════════════════
+# Stage 4: DEPLOY  –  Zero-downtime rsync to Plesk
+# ═══════════════════════════════════════════════════════════════
+#
+# Strategy:
+#   1. rsync to <DEPLOY_PATH>-staging/
+#   2. Atomic symlink swap: <DEPLOY_PATH> → <DEPLOY_PATH>-staging
+#   3. Keep previous release as <DEPLOY_PATH>-prev for instant rollback
+#
+# For Plesk: DEPLOY_PATH should point to the vhost document root.
+# Example: /var/www/vhosts/example.ch/httpdocs
+#
+# The "rollback" job restores the previous release in one click.
+# ═══════════════════════════════════════════════════════════════
+
+deploy:
+  stage: deploy
+  image: alpine:latest
+  dependencies:
+    - build
+  before_script:
+    - apk add --no-cache rsync openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $(echo $DEPLOY_HOST | cut -d@ -f2) >> ~/.ssh/known_hosts 2>/dev/null
+  script:
+    - |
+      STAGING="${DEPLOY_PATH}-staging"
+      PREVIOUS="${DEPLOY_PATH}-prev"
+      echo "Deploying to ${DEPLOY_HOST}:${STAGING}"
+    # 1. Sync files to staging directory
+    - rsync -az --delete
+        --exclude='.well-known'
+        --exclude='cgi-bin'
+        --exclude='.htaccess'
+        --exclude='.user.ini'
+        astro-theme/dist/
+        ${DEPLOY_HOST}:${STAGING}/
+    # 2. Atomic swap on server (zero-downtime)
+    - |
+      ssh ${DEPLOY_HOST} "
+        set -e
+        # Remove previous backup
+        [ -d '${PREVIOUS}' ] && rm -rf '${PREVIOUS}'
+        # Current → previous (backup)
+        [ -d '${DEPLOY_PATH}' ] && mv '${DEPLOY_PATH}' '${PREVIOUS}'
+        # Staging → current (go live)
+        mv '${STAGING}' '${DEPLOY_PATH}'
+        echo 'Swap complete'
+      "
+    - echo "══════════════════════════════════"
+    - echo "✓ Live at https://${SITE_DOMAIN}"
+    - echo "  Rollback available via -prev directory"
+    - echo "══════════════════════════════════"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
+      when: manual
+    - if: $CI_PIPELINE_SOURCE == "web"
+      when: manual
+  environment:
+    name: production
+    url: https://${SITE_DOMAIN}
+
+# ═══════════════════════════════════════════════════════════════
+# ROLLBACK  –  Restore previous release (manual, one-click)
+# ═══════════════════════════════════════════════════════════════
+
+rollback:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+    - chmod 600 ~/.ssh/id_rsa
+    - ssh-keyscan -H $(echo $DEPLOY_HOST | cut -d@ -f2) >> ~/.ssh/known_hosts 2>/dev/null
+  script:
+    - |
+      PREVIOUS="${DEPLOY_PATH}-prev"
+      ssh ${DEPLOY_HOST} "
+        set -e
+        if [ ! -d '${PREVIOUS}' ]; then
+          echo 'No previous release found. Cannot rollback.'
+          exit 1
+        fi
+        # Swap back
+        [ -d '${DEPLOY_PATH}' ] && rm -rf '${DEPLOY_PATH}'
+        mv '${PREVIOUS}' '${DEPLOY_PATH}'
+        echo 'Rollback complete'
+      "
+    - echo "══════════════════════════════════"
+    - echo "✓ Rolled back to previous release"
+    - echo "══════════════════════════════════"
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
+      when: manual
+  environment:
+    name: production
+    url: https://${SITE_DOMAIN}

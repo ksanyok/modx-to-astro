@@ -1,0 +1,24 @@
+---
+interface Props {
+  items: Array<{
+    icon?: string;
+    label: string;
+  }>;
+}
+
+const { items = [] } = Astro.props;
+---
+{items.length > 0 && (
+  <div class="flex flex-col gap-4 py-4">
+    {items.map((item) => (
+      <div class="flex items-center gap-4 group cursor-default">
+        {item.icon && (
+          <div class="w-12 h-12 shrink-0 flex items-center justify-center rounded-xl bg-(--color-bg-alt) border border-(--color-border-light) group-hover:border-(--color-accent)/30 group-hover:bg-(--color-accent-light) transition-all duration-300">
+            <img src={item.icon} alt="" class="w-6 h-6 object-contain opacity-70 group-hover:opacity-100 transition-opacity duration-300" loading="lazy" />
+          </div>
+        )}
+        <span class="text-sm font-medium text-(--color-text) leading-snug [&_a]:text-(--color-accent) [&_a]:no-underline hover:[&_a]:underline" set:html={item.label} />
+      </div>
+    ))}
+  </div>
+)}

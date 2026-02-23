@@ -1,0 +1,48 @@
+---
+interface Props {
+  src: string;
+  alt?: string;
+  width?: number;
+  height?: number;
+  cover?: boolean;
+  borderless?: boolean;
+  position?: string;
+  loading?: 'lazy' | 'eager';
+  fetchpriority?: 'high' | 'low' | 'auto';
+}
+
+const {
+  src = '',
+  alt = '',
+  width,
+  height,
+  cover = false,
+  borderless = false,
+  position = '',
+  loading = 'lazy',
+  fetchpriority = 'auto',
+} = Astro.props;
+
+const positionMap: Record<string, string> = {
+  'img-cover-pos-t': 'object-top',
+  'img-cover-pos-b': 'object-bottom',
+  'img-cover-pos-l': 'object-left',
+  'img-cover-pos-r': 'object-right',
+};
+---
+{src && (
+  <img
+    src={src}
+    alt={alt}
+    width={width}
+    height={height}
+    loading={loading}
+    decoding="async"
+    fetchpriority={fetchpriority}
+    class:list={[
+      cover ? 'w-full h-full object-cover' : 'max-w-full h-auto',
+      borderless ? '' : 'rounded-xl',
+      positionMap[position] || '',
+    ]}
+  />
+)}

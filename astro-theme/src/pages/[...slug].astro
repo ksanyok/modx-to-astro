@@ -1,0 +1,66 @@
+---
+import PageLayout from '../layouts/PageLayout.astro';
+import ContentRenderer from '../components/ContentRenderer.astro';
+import { getCollection, getEntry } from 'astro:content';
+
+// Load site config via Content Collections
+let siteConfig: any = {};
+try {
+  const entry = await getEntry('siteConfig', 'config');
+  siteConfig = entry?.data || {};
+} catch {
+  try {
+    const mod = await import('../content/site-config.json');
+    siteConfig = mod.default || {};
+  } catch { siteConfig = {}; }
+}
+
+// Build all page slugs at build time using Content Collections
+export async function getStaticPaths() {
+  let pages: any[] = [];
+  try {
+    pages = await getCollection('pages');
+  } catch {
+    // Fallback: read from filesystem directly
+    const fs = await import('node:fs');
+    const path = await import('node:path');
+    const pagesDir = path.join(process.cwd(), 'src/content/pages');
+    
+    function walkDir(dir: string, prefix: string = '') {
+      if (!fs.existsSync(dir)) return;
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          walkDir(path.join(dir, entry.name), prefix ? `${prefix}/${entry.name}` : entry.name);
+        } else if (entry.name.endsWith('.json') && entry.name !== 'index.json') {
+          const slug = prefix
+            ? `${prefix}/${entry.name.replace('.json', '')}`
+            : entry.name.replace('.json', '');
+          const content = JSON.parse(fs.readFileSync(path.join(dir, entry.name), 'utf-8'));
+          pages.push({ id: slug, data: content });
+        }
+      }
+    }
+    walkDir(pagesDir);
+  }
+
+  return pages
+    .filter(p => p.id !== 'index')
+    .map(p => ({
+      params: { slug: p.id },
+      props: { pageData: p.data },
+    }));
+}
+
+const { pageData } = Astro.props;
+const hasHero = pageData.blocks?.some((b: any) => b.type === 'hero') || false;
+---
+<PageLayout
+  title={pageData.title || ''}
+  description={pageData.description || ''}
+  siteConfig={siteConfig}
+  hasHero={hasHero}
+  blocks={pageData.blocks || []}
+>
+  <ContentRenderer blocks={pageData.blocks || []} />
+</PageLayout>

@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Build output
+astro-theme/dist/
+azotea-out/
+kp-out/
+
+# Generated content (per-site, not committed to shared theme repo)
+astro-theme/src/content/pages/
+astro-theme/src/content/site-config.json
+astro-theme/src/content/redirects.json
+astro-theme/public/assets/
+
+# Environment
+.env
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db

@@ -1,0 +1,57 @@
+---
+interface Props {
+  marginTop?: string;
+  marginBottom?: string;
+  backgroundColor?: string;
+  textAlign?: string;
+  anchor?: string;
+  fullWidth?: boolean;
+  id?: string;
+}
+
+const {
+  marginTop = '',
+  marginBottom = '',
+  backgroundColor = '',
+  textAlign = '',
+  anchor = '',
+  fullWidth = false,
+  id,
+} = Astro.props;
+
+const marginMap: Record<string, string> = {
+  'margin-t-20': 'mt-6',
+  'margin-t-40': 'mt-12',
+  'margin-t-60': 'mt-16',
+  'margin-t-80': 'mt-24',
+  'margin-b-20': 'mb-6',
+  'margin-b-40': 'mb-12',
+  'margin-b-60': 'mb-16',
+  'margin-b-80': 'mb-24',
+  'Kein Abstand': '!mt-0 !mb-0 !pt-0 !pb-0',
+};
+
+const alignMap: Record<string, string> = {
+  's-align-c': 'text-center',
+  's-align-r': 'text-right',
+};
+
+const hasBg = backgroundColor && backgroundColor !== '';
+---
+<section
+  id={anchor || id || undefined}
+  class:list={[
+    'animate-on-scroll',
+    marginMap[marginTop] || '',
+    marginMap[marginBottom] || '',
+    alignMap[textAlign] || '',
+  ]}
+  style={hasBg ? `background-color: ${backgroundColor};` : undefined}
+>
+  <div class:list={[
+    fullWidth ? 'w-full' : 'max-w-6xl mx-auto px-5 sm:px-6 lg:px-8',
+    'py-10 sm:py-12',
+  ]}>
+    <slot />
+  </div>
+</section>

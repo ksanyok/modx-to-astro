@@ -1,0 +1,101 @@
+---
+import { socialIcons, socialLabel } from '../utils/socialIcons';
+
+interface Props {
+  companyName?: string;
+  companyAddress?: string;
+  companyPhone?: string;
+  companyEmail?: string;
+  navigation?: Array<{ label: string; href: string }>;
+  socialLinks?: Array<{ platform: string; url: string }>;
+}
+
+const {
+  companyName = 'Company',
+  companyAddress = '',
+  companyPhone = '',
+  companyEmail = '',
+  navigation = [],
+  socialLinks = [],
+} = Astro.props;
+---
+<footer class="bg-(--color-primary) text-white">
+  <div class="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
+    <div class="py-12 sm:py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-12">
+      <div class="sm:col-span-2 lg:col-span-1">
+        <h3 class="text-lg font-bold mb-4 tracking-tight">{companyName}</h3>
+        <div class="space-y-2 text-white/60 text-sm leading-relaxed">
+          {companyAddress && <div set:html={companyAddress} />}
+          {companyPhone && (
+            <p>
+              <a href={`tel:${companyPhone.replace(/\s/g, '')}`} class="hover:text-white transition-colors">
+                {companyPhone}
+              </a>
+            </p>
+          )}
+          {companyEmail && (
+            <p>
+              <a href={`mailto:${companyEmail}`} class="hover:text-white transition-colors">
+                {companyEmail}
+              </a>
+            </p>
+          )}
+        </div>
+        {socialLinks.length > 0 && (
+          <div class="flex items-center gap-3 mt-5">
+            {socialLinks.map((social) => (
+              <a
+                href={social.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="w-9 h-9 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 hover:scale-110 transition-all duration-200"
+                aria-label={socialLabel(social.platform)}
+              >
+                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" set:html={socialIcons[social.platform] || ''} />
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-white/50 mb-4">Seiten</h4>
+        <ul class="space-y-2.5">
+          {navigation.map((item) => (
+            <li>
+              <a href={item.href} class="text-white/60 hover:text-white text-sm transition-colors">
+                {item.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-white/50 mb-4">Rechtliches</h4>
+        <ul class="space-y-2.5">
+          <li><a href="/impressum" class="text-white/60 hover:text-white text-sm transition-colors">Impressum</a></li>
+          <li><a href="/datenschutz" class="text-white/60 hover:text-white text-sm transition-colors">Datenschutz</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-white/50 mb-4">Kontakt</h4>
+        <p class="text-white/60 text-sm leading-relaxed">
+          Wir freuen uns auf Ihre Anfrage.
+        </p>
+      </div>
+    </div>
+
+    <div class="border-t border-white/10 py-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <p class="text-white/40 text-xs">
+        &copy; {new Date().getFullYear()} {companyName}. Alle Rechte vorbehalten.
+      </p>
+      <div class="flex items-center gap-4">
+        <a href="/impressum" class="text-white/40 hover:text-white/70 text-xs transition-colors">Impressum</a>
+        <span class="text-white/20">&middot;</span>
+        <a href="/datenschutz" class="text-white/40 hover:text-white/70 text-xs transition-colors">Datenschutz</a>
+      </div>
+    </div>
+  </div>
+</footer>

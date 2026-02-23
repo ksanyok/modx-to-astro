@@ -1,0 +1,31 @@
+---
+interface Props {
+  width?: string;
+  marginTop?: string;
+  marginBottom?: string;
+}
+
+const { width = 'full', marginTop = '', marginBottom = '' } = Astro.props;
+
+const widthClasses: Record<string, string> = {
+  full: 'w-full',
+  '60': 'w-3/5',
+  '40': 'w-2/5',
+  '20': 'w-1/5',
+};
+
+const marginMap: Record<string, string> = {
+  'margin-t-20': 'mt-6',
+  'margin-t-40': 'mt-12',
+  'margin-t-60': 'mt-16',
+  'margin-t-80': 'mt-24',
+  'margin-b-20': 'mb-6',
+  'margin-b-40': 'mb-12',
+  'margin-b-60': 'mb-16',
+  'margin-b-80': 'mb-24',
+  'Kein Abstand': '!m-0',
+};
+---
+<div class:list={['flex justify-center', marginMap[marginTop] || '', marginMap[marginBottom] || '']}>
+  <hr class:list={[widthClasses[width] || 'w-full', 'border-t border-(--color-border)']} />
+</div>

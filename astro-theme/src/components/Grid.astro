@@ -1,0 +1,22 @@
+---
+interface Props {
+  columns: string;
+  gap?: string;
+}
+
+const { columns = '50-50', gap = 'gap-8 lg:gap-12' } = Astro.props;
+
+const gridClasses: Record<string, string> = {
+  '100': 'grid-cols-1',
+  '50-50': 'grid-cols-1 md:grid-cols-2',
+  '60-40': 'grid-cols-1 md:grid-cols-[3fr_2fr]',
+  '40-60': 'grid-cols-1 md:grid-cols-[2fr_3fr]',
+  '30-70': 'grid-cols-1 md:grid-cols-[3fr_7fr]',
+  '70-30': 'grid-cols-1 md:grid-cols-[7fr_3fr]',
+  '30-30-30': 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+  '25-25-25-25': 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+};
+---
+<div class:list={['grid items-start', gridClasses[columns] || gridClasses['50-50'], gap]}>
+  <slot />
+</div>

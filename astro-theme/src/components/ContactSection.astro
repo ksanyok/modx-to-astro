@@ -1,0 +1,273 @@
+---
+/**
+ * ContactSection — global contact block rendered at the bottom of every page.
+ * Mirrors the MODX Clientconfig-driven contact template used across all sites.
+ * Shows: company info column | optional opening hours | form column
+ */
+interface Props {
+  companyName?: string;
+  companyAddress?: string;
+  companyPhone?: string;
+  companyEmail?: string;
+  companyWebsite?: string;
+  openingHours?: string;
+  mapsEmbed?: string;
+  middleInfos?: string;
+  recipientEmail?: string;
+}
+
+const {
+  companyName = '',
+  companyAddress = '',
+  companyPhone = '',
+  companyEmail = '',
+  companyWebsite = '',
+  openingHours = '',
+  mapsEmbed = '',
+  middleInfos = '',
+  recipientEmail = '',
+} = Astro.props;
+
+// Strip HTML from address for display
+const addressText = companyAddress.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim();
+
+// Determine if we have a middle column (mapsEmbed is shown as full-width below the grid)
+const hasMiddle = !!middleInfos || !!openingHours;
+
+// Strip trailing slash/www for display website
+const websiteDisplay = companyWebsite.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+---
+
+<section id="kontakt" class="py-14 md:py-20 bg-(--color-bg-section, --color-bg-alt) border-t border-(--color-border-light)">
+  <div class="max-w-screen-xl mx-auto px-4 sm:px-6">
+    
+    {/* Section heading with accent underline */}
+    <div class="mb-10 md:mb-14">
+      <h2 class="text-2xl sm:text-3xl font-bold text-(--color-text) mb-3">
+        Kontaktieren Sie uns noch heute für eine unverbindliche Offerte
+      </h2>
+      <div class="w-12 h-1 rounded-full bg-(--color-accent)"></div>
+    </div>
+
+    <div class:list={['grid gap-10 items-start', hasMiddle ? 'grid-cols-1 md:grid-cols-[1fr_1fr_2fr]' : 'grid-cols-1 md:grid-cols-[1fr_2fr]']}>
+      
+      {/* Left: contact details */}
+      <div class="space-y-4 text-sm text-(--color-text)">
+        {addressText && (
+          <div class="flex items-start gap-3">
+            <svg class="w-5 h-5 mt-0.5 shrink-0 text-(--color-accent)" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+            <span set:html={addressText.replace(/\n/g, '<br>')}></span>
+          </div>
+        )}
+        {companyPhone && (
+          <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 shrink-0 text-(--color-accent)" fill="currentColor" viewBox="0 0 20 20"><path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/></svg>
+            <a href={`tel:${companyPhone.replace(/\s/g,'')}`} class="hover:text-(--color-accent) transition-colors">{companyPhone}</a>
+          </div>
+        )}
+        {companyEmail && (
+          <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 shrink-0 text-(--color-accent)" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/></svg>
+            <a href={`mailto:${companyEmail}`} class="hover:text-(--color-accent) transition-colors">{companyEmail}</a>
+          </div>
+        )}
+        {websiteDisplay && (
+          <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 shrink-0 text-(--color-accent)" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.083 9h1.946c.089-1.546.383-2.97.837-4.118A6.004 6.004 0 004.083 9zM10 2a8 8 0 100 16A8 8 0 0010 2zm0 2c-.076 0-.232.032-.465.262-.238.234-.497.623-.737 1.182-.389.907-.673 2.142-.766 3.556h3.936c-.093-1.414-.377-2.649-.766-3.556-.24-.56-.5-.948-.737-1.182C10.232 4.032 10.076 4 10 4zm3.971 5c-.089-1.546-.383-2.97-.837-4.118A6.004 6.004 0 0115.917 9h-1.946zm-2.003 2H8.032c.093 1.414.377 2.649.766 3.556.24.56.5.948.737 1.182.233.23.389.262.465.262.076 0 .232-.032.465-.262.238-.234.498-.623.737-1.182.389-.907.673-2.142.766-3.556zm1.166 4.118c.454-1.147.748-2.572.837-4.118h1.946a6.004 6.004 0 01-2.783 4.118zm-6.268 0C6.412 13.97 6.118 12.546 6.03 11H4.083a6.004 6.004 0 002.783 4.118z" clip-rule="evenodd"/></svg>
+            <a href={companyWebsite} target="_blank" rel="noopener noreferrer" class="hover:text-(--color-accent) transition-colors">{websiteDisplay}</a>
+          </div>
+        )}
+
+        {/* Opening hours — shown in left column if no middle column */}
+        {!hasMiddle && openingHours && (
+          <div class="mt-4 pt-4 border-t border-(--color-border-light)">
+            <p class="font-semibold mb-1">Öffnungszeiten:</p>
+            <div class="text-(--color-text-light)" set:html={openingHours}></div>
+          </div>
+        )}
+      </div>
+
+      {/* Middle: opening hours / maps / custom info (only if hasMiddle) */}
+      {hasMiddle && (
+        <div class="space-y-4 text-sm text-(--color-text)">
+          {openingHours && (
+            <div>
+              <div class="flex items-center gap-2 font-semibold mb-2">
+                <svg class="w-5 h-5 text-(--color-accent)" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/></svg>
+                Öffnungszeiten:
+              </div>
+              <div class="text-(--color-text-light)" set:html={openingHours}></div>
+            </div>
+          )}
+          {middleInfos && (
+            <div class="text-(--color-text-light)" set:html={middleInfos}></div>
+          )}
+        </div>
+      )}
+
+      {/* Right: contact form */}
+      <div>
+        <form
+          class="space-y-3"
+          data-contact-form
+          data-recipient={recipientEmail || companyEmail || undefined}
+        >
+          {/* Honeypot anti-spam */}
+          <div class="hidden" aria-hidden="true">
+            <input type="text" name="website" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <input type="text" name="name" required placeholder="Name *"
+                class="kp-input" />
+            </div>
+            <div>
+              <input type="text" name="firma" placeholder="Firma"
+                class="kp-input" />
+            </div>
+          </div>
+
+          <div>
+            <input type="text" name="adresse" placeholder="Adresse"
+              class="kp-input w-full" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <input type="text" name="plz" placeholder="PLZ"
+                class="kp-input" />
+            </div>
+            <div>
+              <input type="text" name="ort" placeholder="Ort"
+                class="kp-input" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <input type="tel" name="phone" placeholder="Tel."
+                class="kp-input" />
+            </div>
+            <div>
+              <input type="email" name="email" required placeholder="E-Mail *"
+                class="kp-input" />
+            </div>
+          </div>
+
+          <div>
+            <textarea name="message" rows="4" placeholder="Nachricht"
+              class="kp-input w-full resize-y"></textarea>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              class="px-8 py-3 bg-(--color-accent) hover:bg-(--color-accent-dark) text-white font-semibold rounded-lg transition-all duration-200 hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+            >
+              <span data-submit-text>Absenden</span>
+              <span data-submit-loading class="hidden items-center gap-2">
+                <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                Senden...
+              </span>
+            </button>
+          </div>
+
+          <div data-form-success class="hidden rounded-lg bg-green-50 border border-green-200 p-3 text-sm text-green-800">
+            <strong>Vielen Dank!</strong> Ihre Nachricht wurde erfolgreich gesendet.
+          </div>
+          <div data-form-error class="hidden rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-800">
+            <strong>Fehler:</strong> Bitte versuchen Sie es erneut oder kontaktieren Sie uns direkt per E-Mail.
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  {/* Full-width map section */}
+  {mapsEmbed && (
+    <div class="mt-12 overflow-hidden [&_iframe]:w-full [&_iframe]:max-w-full [&_iframe]:h-64 sm:[&_iframe]:h-80 md:[&_iframe]:h-96 [&_iframe]:border-0" set:html={mapsEmbed}></div>
+  )}
+</section>
+
+<style>
+  /* Input fields styled with accent color background (matching original MODX template) */
+  .kp-input {
+    width: 100%;
+    background-color: var(--color-accent);
+    color: white;
+    border: none;
+    border-radius: 0.375rem;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+    outline: none;
+    transition: opacity 0.15s;
+  }
+  .kp-input::placeholder {
+    color: rgba(255, 255, 255, 0.75);
+  }
+  .kp-input:focus {
+    opacity: 0.9;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
+  }
+</style>
+
+<script>
+  document.querySelectorAll('[data-contact-form]').forEach((form) => {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.target as HTMLFormElement;
+      const btn = f.querySelector('button[type="submit"]') as HTMLButtonElement;
+      const textEl = f.querySelector('[data-submit-text]') as HTMLElement;
+      const loadEl = f.querySelector('[data-submit-loading]') as HTMLElement;
+      const successEl = f.querySelector('[data-form-success]') as HTMLElement;
+      const errorEl = f.querySelector('[data-form-error]') as HTMLElement;
+
+      // Honeypot check
+      if ((f.querySelector('[name="website"]') as HTMLInputElement)?.value) return;
+
+      successEl?.classList.add('hidden');
+      errorEl?.classList.add('hidden');
+      btn.disabled = true;
+      textEl?.classList.add('hidden');
+      loadEl?.classList.remove('hidden');
+      loadEl?.classList.add('inline-flex');
+
+      const data = new FormData(f);
+      data.delete('website');
+      const recipient = f.dataset.recipient;
+
+      if (recipient) {
+        const name = data.get('name') || '';
+        const email = data.get('email') || '';
+        const phone = data.get('phone') || '';
+        const firma = data.get('firma') || '';
+        const adresse = data.get('adresse') || '';
+        const plz = data.get('plz') || '';
+        const ort = data.get('ort') || '';
+        const message = data.get('message') || '';
+        const subject = encodeURIComponent(`Kontaktanfrage von ${name}`);
+        const body = encodeURIComponent(
+          `Name: ${name}\nFirma: ${firma}\nAdresse: ${adresse} ${plz} ${ort}\nTelefon: ${phone}\nE-Mail: ${email}\n\nNachricht:\n${message}`
+        );
+        window.location.href = `mailto:${recipient}?subject=${subject}&body=${body}`;
+        setTimeout(() => {
+          loadEl?.classList.add('hidden');
+          loadEl?.classList.remove('inline-flex');
+          textEl?.classList.remove('hidden');
+          btn.disabled = false;
+          successEl?.classList.remove('hidden');
+          f.reset();
+        }, 500);
+      } else {
+        // No recipient configured
+        loadEl?.classList.add('hidden');
+        loadEl?.classList.remove('inline-flex');
+        textEl?.classList.remove('hidden');
+        btn.disabled = false;
+        errorEl?.classList.remove('hidden');
+      }
+    });
+  });
+</script>

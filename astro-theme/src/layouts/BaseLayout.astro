@@ -1,0 +1,179 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  lang?: string;
+  canonicalUrl?: string;
+  ogImage?: string;
+  heroImage?: string;
+  favicon?: string;
+  noindex?: boolean;
+  maxLayoutWidth?: number;
+  analyticsId?: string;
+  analyticsType?: string;
+  theme?: {
+    primaryColor?: string;
+    secondaryColor?: string;
+    accentColor?: string;
+    accentColorDark?: string;
+    backgroundColor?: string;
+    textColor?: string;
+    bodyFont?: string;
+    headingFont?: string;
+  };
+}
+
+const {
+  title,
+  description = '',
+  lang = 'de',
+  canonicalUrl,
+  ogImage,
+  heroImage,
+  favicon,
+  noindex = false,
+  maxLayoutWidth = 1200,
+  analyticsId = '',
+  analyticsType = 'analytics',
+  theme = {},
+} = Astro.props;
+
+// Build canonical URL from current page if not explicitly provided
+const canonical = canonicalUrl || new URL(Astro.url.pathname, Astro.site).href;
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+
+// Build CSS custom property overrides from theme config
+const themeVars = [
+  theme.accentColor && `--color-accent: ${theme.accentColor}`,
+  theme.accentColorDark && `--color-accent-dark: ${theme.accentColorDark}`,
+  theme.accentColor && `--color-accent-light: color-mix(in srgb, ${theme.accentColor} 8%, white)`,
+  theme.primaryColor && `--color-primary: ${theme.primaryColor}`,
+  theme.backgroundColor && `--color-bg: ${theme.backgroundColor}`,
+  theme.textColor && `--color-text: ${theme.textColor}`,
+  theme.bodyFont && `--font-body: ${theme.bodyFont}`,
+  theme.headingFont && `--font-heading: ${theme.headingFont}`,
+  // --page-color3 mirrors accentColor so that legacy inline styles like
+  // style="background-color:var(--page-color3)" from MODX templates work correctly
+  theme.accentColor && `--page-color3: ${theme.accentColor}`,
+  // --layout-max-width controls container width (extracted from MODX maxwidth setting)
+  maxLayoutWidth && `--layout-max-width: ${maxLayoutWidth}px`,
+].filter(Boolean).join('; ');
+
+// Extract font family names for Google Fonts URL
+function extractFontNames(fontStr: string): string[] {
+  if (!fontStr) return [];
+  const matches = fontStr.match(/'([^']+)'/g);
+  return matches ? matches.map((m: string) => m.replace(/'/g, '').trim()).filter((f: string) => !['sans-serif', 'serif', 'cursive', 'monospace', 'system-ui'].includes(f)) : [];
+}
+const fontNames = [...new Set([...extractFontNames(theme.bodyFont || ''), ...extractFontNames(theme.headingFont || '')])];
+const googleFontsUrl = fontNames.length > 0
+  ? `https://fonts.googleapis.com/css2?${fontNames.map((f: string) => `family=${f.replace(/\s+/g, '+')}:wght@300;400;500;600;700`).join('&')}&display=swap`
+  : '';
+---
+<!doctype html>
+<!-- b7264r9s -->
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    {description && <meta name="description" content={description} />}
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={canonical} />
+    {favicon && <link rel="icon" href={favicon} />}
+
+    {/* Preload LCP hero image for fast paint */}
+    {heroImage && <link rel="preload" as="image" href={heroImage} fetchpriority="high" />}
+    
+    {/* Google Fonts — loaded async to avoid render-blocking (media=print trick) */}
+    {googleFontsUrl && (
+      <link rel="preconnect" href="https://fonts.googleapis.com" />
+    )}
+    {googleFontsUrl && (
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    )}
+    {googleFontsUrl && (
+      <link rel="preload" as="style" href={googleFontsUrl} />
+    )}
+    {googleFontsUrl && (
+      <link rel="stylesheet" href={googleFontsUrl} media="print" onload="this.media='all'" />
+    )}
+    {googleFontsUrl && (
+      <noscript><link rel="stylesheet" href={googleFontsUrl} /></noscript>
+    )}
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content={title} />
+    <meta property="og:url" content={pageUrl} />
+    {description && <meta property="og:description" content={description} />}
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta property="og:type" content="website" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    <meta name="twitter:title" content={title} />
+    {description && <meta name="twitter:description" content={description} />}
+    {ogImage && <meta name="twitter:image" content={ogImage} />}
+    
+    <title>{title}</title>
+    <!-- b7264r9s -->
+
+    {/* Google Tag Manager */}
+    {analyticsId && analyticsType === 'tagmanager' && (
+      <script is:inline define:vars={{ analyticsId }}>
+        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+        })(window,document,'script','dataLayer', analyticsId);
+      </script>
+    )}
+
+    {/* Google Analytics 4 */}
+    {analyticsId && analyticsType === 'analytics' && (
+      <script is:inline define:vars={{ analyticsId }}>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', analyticsId);
+      </script>
+    )}
+    {analyticsId && analyticsType === 'analytics' && (
+      <script is:inline define:vars={{ analyticsId }}
+        src={`https://www.googletagmanager.com/gtag/js?id=${analyticsId}`}
+        async
+      />
+    )}
+  </head>
+  <body class="bg-(--color-bg) text-(--color-text) font-sans antialiased" style={themeVars || undefined}>
+    {/* GTM noscript fallback */}
+    {analyticsId && analyticsType === 'tagmanager' && (
+      <noscript>
+        <iframe src={`https://www.googletagmanager.com/ns.html?id=${analyticsId}`}
+          height="0" width="0" style="display:none;visibility:hidden"></iframe>
+      </noscript>
+    )}
+    <slot />
+
+    <script>
+      // Scroll-reveal: observe elements with .animate-on-scroll
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, {
+        threshold: 0.06,
+        rootMargin: '0px 0px -60px 0px',
+      });
+
+      document.querySelectorAll('.animate-on-scroll').forEach((el) => {
+        observer.observe(el);
+      });
+    </script>
+  </body>
+</html>

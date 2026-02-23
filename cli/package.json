@@ -1,0 +1,26 @@
+{
+  "name": "cli",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --verbose",
+    "test:watch": "jest --watch",
+    "migrate": "node migrate.js",
+    "batch": "node batch-migrate.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "chalk": "^5.6.2",
+    "commander": "^14.0.3",
+    "fs-extra": "^11.3.3",
+    "glob": "^13.0.6",
+    "node-sql-parser": "^5.4.0",
+    "sql-parser-mistic": "^1.2.3"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

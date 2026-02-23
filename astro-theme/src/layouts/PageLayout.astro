@@ -1,0 +1,98 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import ContactSection from '../components/ContactSection.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  lang?: string;
+  canonicalUrl?: string;
+  ogImage?: string;
+  siteConfig?: any;
+  hasHero?: boolean;
+  blocks?: any[];
+}
+
+const {
+  title,
+  description,
+  lang = 'de',
+  canonicalUrl,
+  ogImage,
+  siteConfig = {},
+  hasHero = false,
+  blocks = [],
+} = Astro.props;
+
+const navigation = siteConfig.navigation || [];
+const companyName = siteConfig.companyName || '';
+const companyAddress = siteConfig.companyAddress || '';
+const companyPhone = siteConfig.companyPhone || '';
+const companyEmail = siteConfig.companyEmail || '';
+const logo = siteConfig.logo || '';
+const socialLinks = siteConfig.socialLinks || [];
+const theme = siteConfig.theme || {};
+const showContactSection = siteConfig.showContactSection || false;
+const showCompanyName = siteConfig.showCompanyName !== false; // default true
+const maxLayoutWidth = siteConfig.maxLayoutWidth || 1200;
+const analyticsId = siteConfig.analyticsId || '';
+const analyticsType = siteConfig.analyticsType || 'analytics';
+
+// Auto-extract OG image from page blocks if not explicitly provided
+function findFirstImage(blocks: any[]): string {
+  for (const block of blocks) {
+    if (block.type === 'hero' && block.backgroundImage) return block.backgroundImage;
+    if (block.type === 'image' && block.src) return block.src;
+    if (block.type === 'gallery' && block.images?.[0]?.src) return block.images[0].src;
+    if (block.type === 'slider' && block.slides?.[0]?.image) return block.slides[0].image;
+    if (block.type === 'section' && block.children) {
+      const found = findFirstImage(block.children);
+      if (found) return found;
+    }
+    if (block.type === 'grid' && block.cells) {
+      for (const cell of block.cells) {
+        const found = findFirstImage(cell);
+        if (found) return found;
+      }
+    }
+  }
+  return '';
+}
+
+const resolvedOgImage = ogImage || findFirstImage(blocks);
+// Make OG image absolute URL
+const absoluteOgImage = resolvedOgImage
+  ? (resolvedOgImage.startsWith('http') ? resolvedOgImage : new URL(resolvedOgImage, Astro.site).href)
+  : undefined;
+---
+<BaseLayout title={title} description={description} lang={lang} canonicalUrl={canonicalUrl} ogImage={absoluteOgImage} heroImage={absoluteOgImage} theme={theme} favicon={siteConfig.favicon} maxLayoutWidth={maxLayoutWidth} analyticsId={analyticsId} analyticsType={analyticsType}>
+  <div class="min-h-screen flex flex-col">
+  <Header navigation={navigation} companyName={showCompanyName ? companyName : ''} logo={logo} socialLinks={socialLinks} transparent={hasHero} />
+  <main class="flex-1" id="content">
+    <slot />
+  </main>
+  {showContactSection && (
+    <ContactSection
+      companyName={companyName}
+      companyAddress={companyAddress}
+      companyPhone={companyPhone}
+      companyEmail={companyEmail}
+      companyWebsite={siteConfig.companyWebsite || ''}
+      openingHours={siteConfig.openingHours || ''}
+      mapsEmbed={siteConfig.mapsEmbed || ''}
+      middleInfos={siteConfig.middleInfos || ''}
+      recipientEmail={companyEmail}
+    />
+  )}
+  <Footer
+    companyName={companyName}
+    companyAddress={companyAddress}
+    companyPhone={companyPhone}
+    companyEmail={companyEmail}
+    navigation={navigation}
+    socialLinks={socialLinks}
+  />
+  </div>
+</BaseLayout>
