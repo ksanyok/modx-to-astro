@@ -13,6 +13,10 @@ astro-theme/src/content/redirects.json
 astro-theme/src/assets/
 astro-theme/public/assets/
 
+# Root-level asset mirrors (copied by migrate.js from source MODX site)
+assets/
+public/assets/
+
 # Environment
 .env
 .DS_Store
