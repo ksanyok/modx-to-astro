@@ -174,7 +174,18 @@ async function main() {
 
   // Copy assets
   log.section('Step 4: Copying media assets');
-  await copyAssets(ASSETS_PATH, path.join(OUT_PATH, '..', '..', 'public', 'assets'));
+  const publicAssetsDir = path.join(OUT_PATH, '..', '..', 'public', 'assets');
+  await copyAssets(ASSETS_PATH, publicAssetsDir);
+
+  // Step 5: Convert images to WebP
+  log.section('Step 5: Converting images to WebP');
+  const pathMap = await convertToWebP(publicAssetsDir);
+  if (pathMap.size > 0) {
+    patchImagePaths(OUT_PATH, pathMap);
+    log.info(`WebP: ${pathMap.size} images converted, paths updated`);
+  } else {
+    log.info('WebP: sharp not available or no images to convert');
+  }
 
   // Summary
   log.section('Migration Complete');
@@ -1808,6 +1819,86 @@ async function copyAssets(srcDir, destDir) {
       log.info(`Recovered from phpthumbof cache: ${phpCopied} files`);
     }
   }
+}
+
+/**
+ * Convert all JPG/JPEG/PNG files in publicAssetsDir to WebP using sharp.
+ * Deletes originals after successful conversion.
+ * Returns a Map of { '/assets/foo.jpg' → '/assets/foo.webp' }.
+ */
+async function convertToWebP(publicAssetsDir) {
+  const pathMap = new Map();
+  let sharp;
+  try {
+    sharp = require('sharp');
+  } catch {
+    return pathMap; // sharp not available
+  }
+
+  const EXTS = new Set(['.jpg', '.jpeg', '.png']);
+
+  async function walk(dir, urlPrefix) {
+    let entries;
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        await walk(path.join(dir, entry.name), `${urlPrefix}${entry.name}/`);
+      } else {
+        const ext = path.extname(entry.name).toLowerCase();
+        if (!EXTS.has(ext)) continue;
+        const srcFile = path.join(dir, entry.name);
+        const webpName = entry.name.slice(0, -ext.length) + '.webp';
+        const destFile = path.join(dir, webpName);
+        // Skip if WebP already exists
+        if (fs.existsSync(destFile)) {
+          pathMap.set(`${urlPrefix}${entry.name}`, `${urlPrefix}${webpName}`);
+          try { fs.unlinkSync(srcFile); } catch {}
+          continue;
+        }
+        try {
+          await sharp(srcFile).webp({ quality: 85 }).toFile(destFile);
+          fs.unlinkSync(srcFile);
+          pathMap.set(`${urlPrefix}${entry.name}`, `${urlPrefix}${webpName}`);
+        } catch {
+          // keep original if conversion fails (e.g. SVG or corrupt file)
+        }
+      }
+    }
+  }
+
+  await walk(publicAssetsDir, '/assets/');
+  return pathMap;
+}
+
+/**
+ * Replace old image paths with WebP paths in all generated JSON content files.
+ * Updates pages/*.json and site-config.json (logo, favicon).
+ */
+function patchImagePaths(outPath, pathMap) {
+  if (pathMap.size === 0) return;
+
+  // Build a single regex that matches any of the old paths (URL-encoded or not)
+  // Sorted by length descending to avoid partial replacements
+  const sortedOld = [...pathMap.keys()].sort((a, b) => b.length - a.length);
+  const escapedParts = sortedOld.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const regex = new RegExp(escapedParts.join('|'), 'g');
+
+  function replaceIn(filePath) {
+    if (!fs.existsSync(filePath)) return;
+    const original = fs.readFileSync(filePath, 'utf-8');
+    const updated = original.replace(regex, match => pathMap.get(match) || match);
+    if (updated !== original) fs.writeFileSync(filePath, updated, 'utf-8');
+  }
+
+  // Update all page JSON files
+  const pagesDir = path.join(outPath, 'pages');
+  if (fs.existsSync(pagesDir)) {
+    for (const file of fs.readdirSync(pagesDir)) {
+      if (file.endsWith('.json')) replaceIn(path.join(pagesDir, file));
+    }
+  }
+  // Update site-config (logo, favicon, etc.)
+  replaceIn(path.join(outPath, 'site-config.json'));
 }
 
 function countFiles(dir) {
