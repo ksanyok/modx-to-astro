@@ -1859,7 +1859,7 @@ async function convertToWebP(publicAssetsDir) {
           // Resize if image dimensions exceed practical display limits.
           // Max 1600px for regular images (saves 60-80% bytes for 2048px+ photos).
           const meta = await sharp(srcFile).metadata();
-          const MAX = 1600;
+          const MAX = 1200;
           let pipeline = sharp(srcFile);
           if (meta.width && meta.height) {
             const longest = Math.max(meta.width, meta.height);

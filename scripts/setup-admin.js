@@ -3,10 +3,9 @@
  * setup-admin.js — generate a random admin password and store in .env
  * Run: node scripts/setup-admin.js
  *
- * Writes to .env at workspace root:
- *   ADMIN_PASSWORD=<plaintext — shown once, for the client>
- *   ADMIN_PASSWORD_HASH=<sha256 — baked into Astro build>
- *   ADMIN_REBUILD_WEBHOOK=   ← fill in manually if needed
+ * Writes ADMIN_PASSWORD_HASH to:
+ *   - .env                  (workspace root — stores plaintext password)
+ *   - astro-theme/.env      (Astro project — bakes hash into build)
  *
  * After running this, rebuild and redeploy the Astro site.
  */
@@ -15,48 +14,52 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
-const envPath = path.join(__dirname, '..', '.env');
+const rootEnvPath  = path.join(__dirname, '..', '.env');
+const astroEnvPath = path.join(__dirname, '..', 'astro-theme', '.env');
 
 // Generate a 16-char URL-safe random password
 const password = crypto.randomBytes(12).toString('base64url');
 const hash = crypto.createHash('sha256').update(password).digest('hex');
 
-// Read existing .env (best-effort)
-let env = '';
-try {
-  env = fs.readFileSync(envPath, 'utf-8');
-} catch {
-  // No .env yet — OK
+// ── Helper: patch or create an .env file ──────────────────────────
+function patchEnv(filePath, vars) {
+  let existing = '';
+  try { existing = fs.readFileSync(filePath, 'utf-8'); } catch { /* new file */ }
+  const keys = Object.keys(vars);
+  let lines = existing.split('\n').filter(l => !keys.some(k => l.startsWith(k + '=')));
+  // Remove trailing blank lines
+  while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+  const additions = keys.map(k => `${k}=${vars[k]}`);
+  const result = [...lines, '', ...additions, ''].join('\n');
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, result);
 }
 
-// Remove old ADMIN_ lines
-const cleaned = env
-  .split('\n')
-  .filter(l => !l.startsWith('ADMIN_PASSWORD') && !l.startsWith('ADMIN_REBUILD_WEBHOOK'))
-  .join('\n')
-  .trim();
+// ── Write credentials ──────────────────────────────────────────────
+// Root .env — stores plaintext password (human reference, never committed)
+patchEnv(rootEnvPath, {
+  ADMIN_PASSWORD:        password,
+  ADMIN_PASSWORD_HASH:   hash,
+  ADMIN_REBUILD_WEBHOOK: '',
+});
 
-const newEnv = [
-  cleaned,
-  '',
-  '# ── Admin panel ──────────────────────────────────────────────────',
-  `ADMIN_PASSWORD=${password}`,
-  `ADMIN_PASSWORD_HASH=${hash}`,
-  'ADMIN_REBUILD_WEBHOOK=',
-  '',
-].join('\n');
+// astro-theme/.env — Astro reads this at build time
+patchEnv(astroEnvPath, {
+  ADMIN_PASSWORD_HASH:   hash,
+  ADMIN_REBUILD_WEBHOOK: '',
+});
 
-fs.writeFileSync(envPath, newEnv);
+console.log('\n✓ Admin credentials written');
+console.log('  Root .env        →', rootEnvPath);
+console.log('  Astro .env       →', astroEnvPath);
 
-console.log('');
-console.log('✓ Admin credentials written to .env');
 console.log('');
 console.log('  Password :', password);
 console.log('  SHA-256  :', hash);
 console.log('  Route    : /admin-b7264r9s');
 console.log('');
 console.log('⚠ NEXT STEPS:');
-console.log('  1. Optionally set ADMIN_REBUILD_WEBHOOK in .env');
-console.log('  2. npm run build   (in astro-theme/)');
+console.log('  1. Optionally set ADMIN_REBUILD_WEBHOOK in astro-theme/.env');
+console.log('  2. cd astro-theme && npm run build');
 console.log('  3. Redeploy → the hash is now baked into the HTML');
 console.log('');
