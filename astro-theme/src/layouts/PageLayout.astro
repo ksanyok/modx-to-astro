@@ -3,6 +3,8 @@ import BaseLayout from './BaseLayout.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import ContactSection from '../components/ContactSection.astro';
+import { getImage } from 'astro:assets';
+import { resolveImage } from '../utils/imageLoader';
 
 interface Props {
   title: string;
@@ -66,8 +68,28 @@ const resolvedOgImage = ogImage || findFirstImage(blocks);
 const absoluteOgImage = resolvedOgImage
   ? (resolvedOgImage.startsWith('http') ? resolvedOgImage : new URL(resolvedOgImage, Astro.site).href)
   : undefined;
+
+// Pre-compute hero image preload URLs so BaseLayout can add <link rel="preload"> in <head>.
+// Using getImage() gets the exact hashed URLs that Hero.astro <Image widths> will use — perfect match.
+let heroPreloadSrc = '';
+let heroPreloadSrcset = '';
+const heroBlock = blocks.find((b: any) => b.type === 'hero' && b.backgroundImage);
+if (heroBlock?.backgroundImage) {
+  const meta = await resolveImage(heroBlock.backgroundImage);
+  if (meta) {
+    try {
+      const [img640, img1280, img1920] = await Promise.all([
+        getImage({ src: meta, width: 640, format: 'webp' }),
+        getImage({ src: meta, width: 1280, format: 'webp' }),
+        getImage({ src: meta, width: 1920, format: 'webp' }),
+      ]);
+      heroPreloadSrc = img1920.src;
+      heroPreloadSrcset = `${img640.src} 640w, ${img1280.src} 1280w, ${img1920.src} 1920w`;
+    } catch { /* fallback: no preload, hero still loads correctly */ }
+  }
+}
 ---
-<BaseLayout title={title} description={description} lang={lang} canonicalUrl={canonicalUrl} ogImage={absoluteOgImage} heroImage={absoluteOgImage} theme={theme} favicon={siteConfig.favicon} maxLayoutWidth={maxLayoutWidth} analyticsId={analyticsId} analyticsType={analyticsType}>
+<BaseLayout title={title} description={description} lang={lang} canonicalUrl={canonicalUrl} ogImage={absoluteOgImage} heroPreloadSrc={heroPreloadSrc} heroPreloadSrcset={heroPreloadSrcset} theme={theme} favicon={siteConfig.favicon} maxLayoutWidth={maxLayoutWidth} analyticsId={analyticsId} analyticsType={analyticsType}>
   <div class="min-h-screen flex flex-col">
   <Header navigation={navigation} companyName={showCompanyName ? companyName : ''} logo={logo} socialLinks={socialLinks} transparent={hasHero} />
   <main class="flex-1" id="content">

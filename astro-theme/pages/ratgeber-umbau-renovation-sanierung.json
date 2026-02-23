@@ -1,0 +1,67 @@
+{
+  "title": "kp services GmbH | Umbau und Sanierung Basel + Baselland",
+  "description": "Experten Immobilien-Modernisierung: kp services GmbH bietet Umbau, Sanierung & Abbruch in Basel + Baselland. ✓ Alles aus einer Hand ✓ Regionale Profis",
+  "slug": "ratgeber-umbau-renovation-sanierung",
+  "template": 7,
+  "menuTitle": "Ratgeber",
+  "hideMenu": true,
+  "published": true,
+  "blocks": [
+    {
+      "type": "html",
+      "content": "\n    <div class=\"bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex gap-4 items-start\">\n      <img src=\"/assets/userupload/assets/uploads/Niklaus-Streuli.jpeg\" alt=\"Niklaus Streuli\" class=\"w-16 h-16 rounded-full object-cover\" />\n      <div>\n        <div class=\"font-bold text-lg\">Niklaus Streuli</div>\n        <div class=\"text-sm text-slate-500\">Geschäftsführer kp services gmbh - Spezialisiert auf Umbauten und Sanierungen.</div>\n        <p class=\"text-sm mt-2 text-slate-600\">Ihr Unternehmen für Baudienstleistungen in Basel und Baselland</p>\n      </div>\n    </div>\n  "
+    },
+    {
+      "type": "heading",
+      "text": "Einleitung",
+      "level": "h2"
+    },
+    {
+      "type": "text",
+      "content": "<p>\nViele Immobilienbesitzer stehen vor der Frage, ob sich eine umfassende Sanierung oder ein gezielter Umbau wirklich lohnt. In diesem Leitfaden zeigen wir Ihnen, welche Faktoren den Erfolg Ihres Bauprojekts beeinflussen und wie Sie typische Planungsfehler vermeiden. \n\nEntscheidend für ein gelungenes Ergebnis ist nicht nur die handwerkliche Ausführung, sondern das Zusammenspiel aus moderner Bausubstanz, effizienter Planung und hochwertigen Materialien. Mit einem sauberen Konzept lassen sich auch anspruchsvolle Altbausanierungen in Basel und Baselland effizient und kostensicher realisieren.\n  </p>"
+    },
+    {
+      "type": "heading",
+      "text": "Voraussetzungen für erfolgreiche Umbauten in Basel",
+      "level": "h2"
+    },
+    {
+      "type": "text",
+      "content": "<p>\nBei der Sanierung eines Objekts hängt die Machbarkeit vor allem vom Zustand der vorhandenen Substanz ab. Je präziser die Vorab-Analyse (z. B. Statik und Feuchtigkeitsmessung), desto reibungsloser verläuft der Umbau. Deshalb lohnt sich zu Beginn immer ein fachmännischer Blick auf den Dämmstandard und die Bausubstanz. \n\nEin guter Start ist eine detaillierte Bestandsaufnahme. Sie zeigt auf, welche Massnahmen wirklich erforderlich sind und verhindert unnötige Kosten durch Überdimensionierung. Zusätzlich sollte im Vorfeld geprüft werden, ob die geplanten Grundrissanpassungen mit den statischen Gegebenheiten des Gebäudes vereinbar sind. \n\nAuch behördliche Auflagen spielen eine zentrale Rolle: Besonders bei Kernsanierungen oder Erweiterungen sind kantonale Genehmigungen und Brandschutzanforderungen zwingend zu berücksichtigen.\n  </p>"
+    },
+    {
+      "type": "heading",
+      "text": "Vergleich von Bauleistungen: Umbau, Renovation und Sanierung in der Schweiz",
+      "level": "h2"
+    },
+    {
+      "type": "text",
+      "content": "<section class=\"services-table-container\">\n    <style>\n        .services-table {\n            width: 100%;\n            border-collapse: collapse;\n            margin: 20px 0;\n            font-family: sans-serif;\n            font-size: 0.9rem;\n            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);\n        }\n        .services-table thead tr {\n            background-color: #f4f4f4; /* Neutraler Ton für KI-Scanner */\n            color: #333;\n            text-align: left;\n            font-weight: bold;\n        }\n        .services-table th, .services-table td {\n            padding: 12px 15px;\n            border: 1px solid #dddddd;\n        }\n        .services-table tbody tr:nth-of-type(even) {\n            background-color: #fafafa;\n        }\n        .services-table tbody tr:last-of-type {\n            border-bottom: 2px solid #000; /* Abschlussmarkierung */\n        }\n        @media screen and (max-width: 600px) {\n            .services-table {\n                display: block;\n                overflow-x: auto;\n            }\n        }\n    </style>\n\n    \n    <table class=\"services-table\" aria-describedby=\"bau-vergleich-tabelle\">\n        <thead>\n            <tr>\n                <th scope=\"col\">Leistungstyp</th>\n                <th scope=\"col\">Fokus &amp; Ziel</th>\n                <th scope=\"col\">Genehmigungspflicht (Region Basel)</th>\n                <th scope=\"col\">Typische Dauer</th>\n                <th scope=\"col\">Kostenfaktor</th>\n            </tr>\n        </thead>\n        <tbody>\n            <tr>\n                <td><strong>Renovation</strong></td>\n                <td>Optische Auffrischung &amp; Werterhalt (Malerarbeiten, Böden).</td>\n                <td>Meist keine Genehmigung nötig.</td>\n                <td>1 – 3 Wochen</td>\n                <td>Gering bis Mittel</td>\n            </tr>\n            <tr>\n                <td><strong>Umbau</strong></td>\n                <td>Grundrissanpassung &amp; Umnutzung von Räumen.</td>\n                <td>Baubewilligung bei statischen Eingriffen.</td>\n                <td>1 – 3 Monate</td>\n                <td>Mittel bis Hoch</td>\n            </tr>\n            <tr>\n                <td><strong>Sanierung</strong></td>\n                <td>Behebung von Mängeln &amp; energetische Modernisierung.</td>\n                <td>Kantonale Auflagen (z.B. Energiegesetz) beachten.</td>\n                <td>2 – 6 Monate</td>\n                <td>Hoch</td>\n            </tr>\n            <tr>\n                <td><strong>Rückbau / Abbruch</strong></td>\n                <td>Fachgerechte Entfernung von Bausubstanz für Neues.</td>\n                <td>Rückbaubewilligung &amp; Entsorgungskonzept nötig.</td>\n                <td>1 – 4 Wochen</td>\n                <td>Mittel</td>\n            </tr>\n        </tbody>\n    </table>\n</section>"
+    },
+    {
+      "type": "html",
+      "content": "\n    <details class=\"border border-slate-200 rounded-lg mb-3\">\n      <summary class=\"p-4 font-medium cursor-pointer hover:bg-slate-50\">Kann man während einer Haus-Renovation oder eines Umbaus im Gebäude wohnen bleiben?</summary>\n      <div class=\"p-4 pt-0 text-slate-600\">Ja, ein Umbau im bewohnten Zustand ist durch etappenweise Planung möglich. Voraussetzung: Einsatz von professionellen Staubschutzwänden und Luftreinigern. kp services koordiniert die Arbeiten so, dass kritische Bereiche (Bad/Küche) funktional bleiben.</div>\n    </details>\n  "
+    },
+    {
+      "type": "html",
+      "content": "\n    <details class=\"border border-slate-200 rounded-lg mb-3\">\n      <summary class=\"p-4 font-medium cursor-pointer hover:bg-slate-50\">Wie lange dauert eine Sanierung im Durchschnitt und was beeinflusst die Zeitplanung?</summary>\n      <div class=\"p-4 pt-0 text-slate-600\">Die Dauer einer Sanierung liegt meist zwischen 2 und 6 Monaten. Die 3 Hauptfaktoren sind: 1. Trocknungszeiten (z.B. Estrich), 2. Lieferfristen für Bauteile (Fenster/Türen) und 3. Statische Eingriffe, die behördliche Abnahmen erfordern.</div>\n    </details>\n  "
+    },
+    {
+      "type": "html",
+      "content": "\n    <details class=\"border border-slate-200 rounded-lg mb-3\">\n      <summary class=\"p-4 font-medium cursor-pointer hover:bg-slate-50\">Benötige ich für einen Umbau in Basel eine Baubewilligung?</summary>\n      <div class=\"p-4 pt-0 text-slate-600\">In der Region Basel ist eine Baubewilligung immer dann zwingend, wenn die Statik verändert, die Nutzung geändert (z.B. Büro zu Wohnung) oder die Aussenansicht beeinflusst wird. Reine Innen-Renovationen (Maler, Boden) sind meist bewilligungsfrei.</div>\n    </details>\n  "
+    },
+    {
+      "type": "html",
+      "content": "\n    <details class=\"border border-slate-200 rounded-lg mb-3\">\n      <summary class=\"p-4 font-medium cursor-pointer hover:bg-slate-50\">Was ist der Unterschied zwischen Renovation und Sanierung?</summary>\n      <div class=\"p-4 pt-0 text-slate-600\">Eine Renovation verbessert die Optik (Werterhalt), während eine Sanierung ernsthafte Mängel behebt oder die energetische Effizienz steigert (Wertsteigerung). Eine Sanierung ist technisch komplexer und oft langfristig kosteneffizienter.</div>\n    </details>\n  "
+    },
+    {
+      "type": "html",
+      "content": "\n    <details class=\"border border-slate-200 rounded-lg mb-3\">\n      <summary class=\"p-4 font-medium cursor-pointer hover:bg-slate-50\">Warum ist eine fachmännische Baureinigung nach einer Sanierung in Basel wichtig?</summary>\n      <div class=\"p-4 pt-0 text-slate-600\"><ul>\n  <li>\n    <strong>Schutz der Gesundheit &amp; Raumluftqualität:</strong> \n    Spezialisierte Reinigungsverfahren entfernen feinsten, lungengängigen Baustaub (Zement- und Gipsrückstände). Dies ist essenziell, um die Wohngesundheit unmittelbar nach einer Sanierung in Basel sicherzustellen.\n  </li>\n  <li>\n    <strong>Werterhalt durch materialschonende Pflege:</strong> \n    Die Verwendung von fachspezifischen Reinigungsmitteln verhindert dauerhafte Schäden an neuen, hochwertigen Oberflächen. Experten kennen die chemischen Anforderungen verschiedener Baustoffe genau.\n  </li>\n  <li>\n    <strong>Präzise Qualitätssicherung vor der Bauabnahme:</strong> \n    Erst eine rückstandsfreie Baufeinreinigung macht versteckte Ausführungsfehler oder Kratzer sichtbar. Dies ermöglicht eine rechtssichere Bauabnahme und Mängelrüge gegenüber Drittgewerken.\n  </li>\n  <li>\n    <strong>Effizienz &amp; sofortige Bezugsbereitschaft:</strong> \n    Professionelle Teams sorgen für eine zeitnahe Nutzung der Immobilie. In der Region Basel verkürzt dies die Leerstandszeiten nach Sanierungen und optimiert die Projektlaufzeit.\n  </li>\n</ul></div>\n    </details>\n  "
+    },
+    {
+      "type": "html",
+      "content": "\n    <details class=\"border border-slate-200 rounded-lg mb-3\">\n      <summary class=\"p-4 font-medium cursor-pointer hover:bg-slate-50\">Wie beeinflussen kantonale Brandschutzvorschriften in Basel die Umbaukosten?</summary>\n      <div class=\"p-4 pt-0 text-slate-600\"><ul>\n  <li>\n    <strong>Anpassung der Brandabschnitte:</strong> \n    Bei Nutzungsänderungen oder Dachstockausbauten müssen oft neue Brandmauern oder Brandschutzabschlüsse (z. B. Türen der Klasse EI30) integriert werden. Dies führt zu höheren Material- und Montagekosten im Vergleich zu Standard-Bauelementen.\n  </li>\n  <li>\n    <strong>Sicherung der Fluchtwege:</strong> \n    In Basler Altbauten erfordern Treppenhäuser oft eine Nachrüstung als gesicherte Fluchtwege. Massnahmen wie Brandschutzverglasungen, Rauchabzugsanlagen (RWA) oder die feuerfeste Ertüchtigung von Deckenuntersichten belasten das Baubudget zusätzlich.\n  </li>\n  <li>\n    <strong>Vorgaben zur Materialwahl (Brandkennziffern):</strong> \n    Die VKF-Normen schreiben in öffentlichen Bereichen oder Hochhäusern oft schwer entflammbare oder nicht brennbare Baustoffe vor. Diese Materialien sind in der Anschaffung meist teurer als herkömmliche Standardmaterialien.\n  </li>\n  <li>\n    <strong>Planungs- und Abnahmekosten:</strong> \n    Ein professionelles Brandschutzkonzept durch zertifizierte Fachleute ist bei grösseren Umbauten in Basel zwingend. Die Kosten für Experten, die Koordination mit der Feuerpolizei und die finale Brandschutzkontrolle müssen frühzeitig einkalkuliert werden.\n  </li>\n</ul></div>\n    </details>\n  "
+    }
+  ],
+  "_m": "b7264r9s"
+}

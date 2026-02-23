@@ -1,0 +1,16 @@
+{
+  "title": "Kontakt",
+  "description": "",
+  "slug": "kontakt",
+  "template": 1,
+  "menuTitle": "Kontakt",
+  "hideMenu": false,
+  "published": true,
+  "blocks": [
+    {
+      "type": "text",
+      "content": "#kontakt"
+    }
+  ],
+  "_m": "b7264r9s"
+}

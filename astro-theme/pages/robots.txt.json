@@ -1,0 +1,16 @@
+{
+  "title": "robots",
+  "description": "",
+  "slug": "robots.txt",
+  "template": 0,
+  "menuTitle": "robots",
+  "hideMenu": true,
+  "published": true,
+  "blocks": [
+    {
+      "type": "text",
+      "content": "User-agent: *\r\nAllow: /\r\n\r\nSitemap: sitemap.xml"
+    }
+  ],
+  "_m": "b7264r9s"
+}

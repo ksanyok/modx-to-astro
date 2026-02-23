@@ -1,0 +1,161 @@
+{
+  "title": "kp services GmbH | Umzugsservice Basel - Umzugshelfer Basel",
+  "description": "Wir bieten professionelle Umzugsdienstleistungen in Basel, Baselland und Aargau an - alles mit unserem zuverlässigen und erfahrenen Personal.",
+  "slug": "umzugshelfer-umzugsservice-umzugsfirma",
+  "template": 1,
+  "menuTitle": "Umzug",
+  "hideMenu": false,
+  "published": true,
+  "blocks": [
+    {
+      "type": "hero",
+      "title": "<b>Umzüge, Räumungen, Entsorgungen &amp; Lieferungen</b>",
+      "subtitle": "",
+      "backgroundImage": "/assets/userupload/assets/uploads/kp-personal-Titelbild-Umzug.jpg",
+      "backgroundVideo": "",
+      "backgroundPosition": "center",
+      "overlayOpacity": 1,
+      "minHeight": "medium",
+      "textAlign": "s-align-c",
+      "verticalAlign": "bottom"
+    },
+    {
+      "type": "section",
+      "marginTop": "margin-t-80",
+      "marginBottom": "margin-b-80",
+      "backgroundColor": "",
+      "textAlign": "",
+      "anchor": "",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "grid",
+          "columns": "30-70",
+          "cells": [
+            [
+              {
+                "type": "image",
+                "src": "/assets/uploads/lieferwagen-weiss_1.png",
+                "alt": "",
+                "width": 512,
+                "height": 512,
+                "cover": false,
+                "borderless": false,
+                "position": ""
+              }
+            ],
+            [
+              {
+                "type": "heading",
+                "text": "<b>Schnelle Umzugsdienstleistungen von Basel bis Aargau</b>",
+                "level": "h2",
+                "textAlign": ""
+              },
+              {
+                "type": "html",
+                "content": "<hr style=\"max-width:50px;height:5px;margin-left:0px;background-color:var(--page-color3);border:0px\" ></hr>"
+              },
+              {
+                "type": "text",
+                "content": "<p>Sie planen einen Umzug, eine Räumung, benötigen eine professionelle Entsorgung oder eine zuverlässige Lieferung in Basel? Unser Unternehmen bietet <a href=\"/startseite\" target=\"_blank\">umfassende Dienstleistungen</a> für alle diese Anforderungen an, um Ihren Bedürfnissen gerecht zu werden.</p>\n<p><strong>Umzug</strong>: Unsere Umzugsdienste in Basel, Baselland und Aargau,&nbsp;sind darauf ausgerichtet, Ihren Umzug stressfrei zu gestalten. Mit einem engagierten Team von Fachleuten kümmern wir uns um den gesamten Umzugsprozess, von der Planung bis zur Durchführung, um sicherzustellen, dass Ihr Umzug reibungslos verläuft.</p>\n<p><strong>Räumungen</strong>: Ob Wohnungen, Büros oder andere Räumlichkeiten - wir bieten professionelle Räumungsdienste in Basel, Baselland und Aargau&nbsp;an. Unsere Experten sorgen für eine gründliche und effiziente Räumung gemäss Ihren Anforderungen.</p>\n<p><strong>Entsorgung</strong>: Wenn es um eine fachgerechte Entsorgung geht, sind wir zur Stelle. Wir kümmern uns um die ordnungsgemässe Entsorgung von Materialien und Abfällen gemäss den örtlichen Vorschriften und Umweltstandards.</p>\n<p><strong>Lieferungen</strong>: Benötigen Sie zuverlässige Lieferungen in Basel, einen Lieferservice in Baselland oder einen Boten in Aargau? Wir bieten pünktliche und sichere Lieferdienste für verschiedene Anforderungen an, sei es für Geschäftsbedarf oder den Transport von Waren.</p>\n<p>Unsere Dienstleistungen in den Bereichen Umzug, Räumung, Entsorgung und Lieferung in Basel, Baselland und Aargau&nbsp;sind darauf ausgerichtet, Ihren Anforderungen gerecht zu werden. Kontaktieren Sie uns noch heute, um mehr über unsere <a href=\"/startseite\" target=\"_blank\">Dienstleistungen</a> zu erfahren und wie wir Ihnen helfen können, Ihre Anforderungen zu erfüllen.</p>",
+                "maxWidth": false
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "marginTop": "",
+      "marginBottom": "",
+      "backgroundColor": "",
+      "textAlign": "",
+      "anchor": "",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "gallery",
+          "columns": 3,
+          "images": [
+            {
+              "src": "/assets/uploads/Umzugsservice-basel-baselland-aargau2.jpg",
+              "alt": "Umzugsservice-basel-baselland-aargau2.jpg",
+              "width": 500,
+              "height": 334,
+              "link": ""
+            },
+            {
+              "src": "/assets/uploads/Umzugsservice-basel-baselland-aargau.jpg",
+              "alt": "Umzugsservice-basel-baselland-aargau.jpg",
+              "width": 500,
+              "height": 334,
+              "link": ""
+            },
+            {
+              "src": "/assets/uploads/Umzugsservice-basel-baselland-aargau3.jpg",
+              "alt": "Umzugsservice-basel-baselland-aargau3.jpg",
+              "width": 500,
+              "height": 281,
+              "link": ""
+            },
+            {
+              "src": "/assets/uploads/KP Services Umzug.jpg",
+              "alt": "KP Services Umzug.jpg",
+              "width": 2560,
+              "height": 1707,
+              "link": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "marginTop": "margin-t-20",
+      "marginBottom": "Kein Abstand",
+      "backgroundColor": "",
+      "textAlign": "",
+      "anchor": "",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "grid",
+          "columns": "30-70",
+          "cells": [
+            [
+              {
+                "type": "image",
+                "src": "/assets/userupload/Logo_kp_services_Webseite_kleiner.png",
+                "alt": "",
+                "width": 2250,
+                "height": 669,
+                "cover": false,
+                "borderless": false,
+                "position": ""
+              }
+            ],
+            [
+              {
+                "type": "heading",
+                "text": "<b>Kontaktieren Sie uns noch heute für eine unverbindliche Offerte</b>",
+                "level": "h2",
+                "textAlign": ""
+              },
+              {
+                "type": "html",
+                "content": "<hr style=\"max-width:50px;height:5px;margin-left:0px;background-color:var(--page-color3);border:0px\" ></hr>"
+              },
+              {
+                "type": "text",
+                "content": "<p>Gerne unterbreiten wir Ihnen ein entsprechendes Angebot, sei es zur Abdeckung einer kurzfristigen Spitze oder für eine langfristige und gewinnbringende Partnerschaft.&nbsp;Mit unserem Standort in Basel sind wir in der Nordwestschweiz zu Hause, können aber nebst den Kantonen Basel-Stadt, Baselland, Aargau und Solothurn natürlich die ganze deutschsprachige Schweiz abdecken.</p>",
+                "maxWidth": false
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "_m": "b7264r9s"
+}

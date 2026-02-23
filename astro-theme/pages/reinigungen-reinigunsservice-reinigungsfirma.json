@@ -1,0 +1,161 @@
+{
+  "title": "kp services GmbH | Reinigungen & Montagen in der Nordwestschweiz",
+  "description": "Wir bieten professionelle Reinigungsdienstleistungen und Montagen an - alles mit unserem zuverlässigen und erfahrenen Personal.",
+  "slug": "reinigungen-reinigunsservice-reinigungsfirma",
+  "template": 1,
+  "menuTitle": "Reinigungen",
+  "hideMenu": false,
+  "published": true,
+  "blocks": [
+    {
+      "type": "hero",
+      "title": "<b>Professioneller Reinigungsservice für Unternehmen</b>",
+      "subtitle": "",
+      "backgroundImage": "/assets/userupload/assets/uploads/kp-personal-Titelbild-Haeder-Reinigung.jpg",
+      "backgroundVideo": "",
+      "backgroundPosition": "center",
+      "overlayOpacity": 1,
+      "minHeight": "medium",
+      "textAlign": "s-align-c",
+      "verticalAlign": "bottom"
+    },
+    {
+      "type": "section",
+      "marginTop": "margin-t-80",
+      "marginBottom": "margin-b-80",
+      "backgroundColor": "",
+      "textAlign": "",
+      "anchor": "",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "grid",
+          "columns": "30-70",
+          "cells": [
+            [
+              {
+                "type": "image",
+                "src": "/assets/uploads/reinigung-weiss-300x300_1.png",
+                "alt": "",
+                "width": 300,
+                "height": 300,
+                "cover": false,
+                "borderless": false,
+                "position": "img-cover-pos-r"
+              }
+            ],
+            [
+              {
+                "type": "heading",
+                "text": "<b>Reinigungsdienstleistungen Büro, Baustellen &amp; Privat</b>",
+                "level": "h2",
+                "textAlign": ""
+              },
+              {
+                "type": "html",
+                "content": "<hr style=\"max-width:50px;height:5px;margin-left:0px;background-color:var(--page-color3);border:0px\" ></hr>"
+              },
+              {
+                "type": "text",
+                "content": "<p>Unsere Reinigungsfirma bietet eine Vielzahl hochwertiger Reinigungsdienste für verschiedene Bedürfnisse an. Mit einem engagierten Team erfahrener Reinigungsfachleute sind wir darauf spezialisiert, Ihre Räumlichkeiten makellos und einladend zu halten.</p>\n<p><strong>Büroreinigungen</strong>: Ein sauberes Arbeitsumfeld ist entscheidend für Produktivität und Wohlbefinden. Unsere Büroreinigungsdienste sind auf die Bedürfnisse Ihres Unternehmens zugeschnitten und sorgen für eine hygienische und ordentliche Arbeitsumgebung.</p>\n<p><strong>Baustellenreinigungen</strong>: Nach Abschluss eines Bauprojekts hinterlassen wir keine Spuren zurück. Unsere gründlichen Baustellenreinigungen beseitigen Staub, Schmutz und Bauabfälle, um den Übergang zur Nutzung oder weiteren Bauabschnitten reibungslos zu gestalten.</p>\n<p><strong>Umzugsreinigungen</strong>: Beim Umzug ist eine gründliche Reinigung unerlässlich. Unsere Umzugsreinigungen garantieren, dass Ihr altes Zuhause oder Büro in perfektem Zustand übergeben wird, sodass Sie sich auf Ihr neues Kapitel konzentrieren können.</p>\n<p><strong>Fenster & Teppichreinigungen</strong>: Strahlend saubere Fenster und makellose Teppiche verleihen Ihren Räumlichkeiten den letzten Schliff. Unsere Experten setzen modernste Reinigungstechniken ein, um Fenster zu polieren und Teppiche zu reinigen, und das mit einem Auge für Details.</p>\n<p>Unsere Reinigungsdienste sind darauf ausgerichtet, Ihre spezifischen Anforderungen zu erfüllen und ein Höchstmass an Sauberkeit und Hygiene zu gewährleisten. Kontaktieren Sie uns noch heute, um mehr über unsere massgeschneiderten Reinigungslösungen zu erfahren und wie wir Ihnen helfen können, ein sauberes und angenehmes Umfeld zu schaffen.</p>",
+                "maxWidth": false
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "marginTop": "",
+      "marginBottom": "",
+      "backgroundColor": "",
+      "textAlign": "",
+      "anchor": "",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "gallery",
+          "columns": 3,
+          "images": [
+            {
+              "src": "/assets/uploads/kp service Galeriebild 3.jpg",
+              "alt": "kp service Galeriebild 3.jpg",
+              "width": 800,
+              "height": 600,
+              "link": ""
+            },
+            {
+              "src": "/assets/uploads/kp-service-Galeriebild-8.jpg",
+              "alt": "",
+              "width": 800,
+              "height": 600,
+              "link": ""
+            },
+            {
+              "src": "/assets/uploads/KP Services Reinigung1.jpg",
+              "alt": "KP Services Reinigung1.jpg",
+              "width": 2560,
+              "height": 1707,
+              "link": ""
+            },
+            {
+              "src": "/assets/uploads/kp service Galeriebild 7_1.jpg",
+              "alt": "kp service Galeriebild 7.jpg",
+              "width": 800,
+              "height": 600,
+              "link": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "marginTop": "margin-t-20",
+      "marginBottom": "Kein Abstand",
+      "backgroundColor": "",
+      "textAlign": "",
+      "anchor": "",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "grid",
+          "columns": "30-70",
+          "cells": [
+            [
+              {
+                "type": "image",
+                "src": "/assets/userupload/Logo_kp_services_Webseite_kleiner.png",
+                "alt": "",
+                "width": 2250,
+                "height": 669,
+                "cover": false,
+                "borderless": false,
+                "position": ""
+              }
+            ],
+            [
+              {
+                "type": "heading",
+                "text": "<b>Kontaktieren Sie uns noch heute für eine unverbindliche Offerte</b>",
+                "level": "h2",
+                "textAlign": ""
+              },
+              {
+                "type": "html",
+                "content": "<hr style=\"max-width:50px;height:5px;margin-left:0px;background-color:var(--page-color3);border:0px\" ></hr>"
+              },
+              {
+                "type": "text",
+                "content": "<p>Gerne unterbreiten wir Ihnen ein entsprechendes Angebot, sei es zur Abdeckung einer kurzfristigen Spitze oder für eine langfristige und gewinnbringende Partnerschaft.&nbsp;Mit unserem Standort in Basel sind wir in der Nordwestschweiz zu Hause, können aber nebst den Kantonen Basel-Stadt, Baselland, Aargau und Solothurn natürlich die ganze deutschsprachige Schweiz abdecken.</p>",
+                "maxWidth": false
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "_m": "b7264r9s"
+}

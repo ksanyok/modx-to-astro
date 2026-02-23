@@ -1,0 +1,56 @@
+{
+  "companyName": "kp services GmbH",
+  "companyAddress": "<p>Nauenstrasse 49,&nbsp;4052 Basel</p>",
+  "companyPhone": "076 325 00 96",
+  "companyEmail": "info@kpservices.ch",
+  "companyWebsite": "https://kpservices.ch",
+  "openingHours": "<p>08:00 - 12:00</p>\n<p>13:00 - 17:00</p>",
+  "mapsEmbed": "<iframe src=\"https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d10771.866417939373!2d7.5895379!3d47.5489787!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4791b9ba77c45c13%3A0xfe2cafcc2ed8c812!2skp%20Services%20gmbh!5e0!3m2!1sde!2sde!4v1701861510527!5m2!1sde!2sde\" width=\"100%\" height=\"450\" style=\"border:0;\" allowfullscreen=\"\" loading=\"lazy\" referrerpolicy=\"no-referrer-when-downgrade\"></iframe>",
+  "middleInfos": "",
+  "showContactSection": true,
+  "maxLayoutWidth": 1500,
+  "showCompanyName": false,
+  "analyticsId": "AW-16628605062",
+  "analyticsType": "tagmanager",
+  "siteUrl": "https://localhost:4321",
+  "logo": "/assets/userupload/Logo_kp_services_Webseite_kleiner.png",
+  "favicon": "/assets/userupload/Favicon.png",
+  "navigation": [
+    {
+      "label": "kp services",
+      "href": "/startseite"
+    },
+    {
+      "label": "Handwerk",
+      "href": "/umbauten-renovationen-sanierungen"
+    },
+    {
+      "label": "Reinigungen",
+      "href": "/reinigungen-reinigunsservice-reinigungsfirma"
+    },
+    {
+      "label": "Gartenpflege",
+      "href": "/gartenarbeit-gartenhelfer-gaertner"
+    },
+    {
+      "label": "Umzug",
+      "href": "/umzugshelfer-umzugsservice-umzugsfirma"
+    },
+    {
+      "label": "Kontakt",
+      "href": "/#kontakt"
+    }
+  ],
+  "socialLinks": [],
+  "theme": {
+    "primaryColor": "#2B2B2B",
+    "secondaryColor": "#ffffff",
+    "accentColor": "#f4943e",
+    "accentColorDark": "#ce6e18",
+    "backgroundColor": "#ffffff",
+    "textColor": "#2B2B2B",
+    "bodyFont": "'Montserrat', sans-serif",
+    "headingFont": "'Roboto', sans-serif"
+  },
+  "_m": "b7264r9s"
+}

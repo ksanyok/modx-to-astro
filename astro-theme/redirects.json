@@ -1,0 +1,176 @@
+[
+  {
+    "id": "1",
+    "old_url": "/seite-c.html",
+    "new_url": "/seite-c",
+    "redirect_type": "301"
+  },
+  {
+    "id": "2",
+    "old_url": "/seite-b/",
+    "new_url": "/2",
+    "redirect_type": "301"
+  },
+  {
+    "id": "3",
+    "old_url": "/seite-c",
+    "new_url": "/seite-c.html",
+    "redirect_type": "301"
+  },
+  {
+    "id": "4",
+    "old_url": "/seite-b",
+    "new_url": "/seite-a/seite-b.html",
+    "redirect_type": "301"
+  },
+  {
+    "id": "5",
+    "old_url": "/seite-a.html",
+    "new_url": "/seite-a",
+    "redirect_type": "301"
+  },
+  {
+    "id": "6",
+    "old_url": "/seite-a/seite-b.html",
+    "new_url": "/seite-a/asdasda.html",
+    "redirect_type": "301"
+  },
+  {
+    "id": "7",
+    "old_url": "/überschriften.html",
+    "new_url": "/9",
+    "redirect_type": "301"
+  },
+  {
+    "id": "8",
+    "old_url": "/seite-c.html",
+    "new_url": "/seite-c",
+    "redirect_type": "301"
+  },
+  {
+    "id": "9",
+    "old_url": "/home.html",
+    "new_url": "/startseite.html",
+    "redirect_type": "301"
+  },
+  {
+    "id": "10",
+    "old_url": "/startseite.html",
+    "new_url": "/modul-test.html",
+    "redirect_type": "301"
+  },
+  {
+    "id": "11",
+    "old_url": "/test1.html",
+    "new_url": "/test2.html",
+    "redirect_type": "301"
+  },
+  {
+    "id": "12",
+    "old_url": "/bastelstube/test.html",
+    "new_url": "/bastelstube/test",
+    "redirect_type": "301"
+  },
+  {
+    "id": "13",
+    "old_url": "/bastelstube.html",
+    "new_url": "/bastelstube",
+    "redirect_type": "301"
+  },
+  {
+    "id": "14",
+    "old_url": "/impressum.html",
+    "new_url": "/impressum",
+    "redirect_type": "301"
+  },
+  {
+    "id": "15",
+    "old_url": "/startseite.html",
+    "new_url": "/startseite",
+    "redirect_type": "301"
+  },
+  {
+    "id": "16",
+    "old_url": "/startseite",
+    "new_url": "/handwerk",
+    "redirect_type": "301"
+  },
+  {
+    "id": "17",
+    "old_url": "/handwerk",
+    "new_url": "/reinigungen",
+    "redirect_type": "301"
+  },
+  {
+    "id": "18",
+    "old_url": "/reinigungen",
+    "new_url": "/umzug",
+    "redirect_type": "301"
+  },
+  {
+    "id": "19",
+    "old_url": "/umzug",
+    "new_url": "/umzugshelfer-umzugsservice-umzugsfirma",
+    "redirect_type": "301"
+  },
+  {
+    "id": "20",
+    "old_url": "/reinigungen",
+    "new_url": "/reinigungen-reinigunsservice-reinigungsfirma",
+    "redirect_type": "301"
+  },
+  {
+    "id": "21",
+    "old_url": "/handwerk",
+    "new_url": "/handwerk-montagefirma-moebelservice",
+    "redirect_type": "301"
+  },
+  {
+    "id": "22",
+    "old_url": "/umzugshelfer-umzugsservice-umzugsfirma",
+    "new_url": "/gartenarbeit-gartenhelfer-gaertner",
+    "redirect_type": "301"
+  },
+  {
+    "id": "23",
+    "old_url": "/handwerk-montagefirma-moebelservice",
+    "new_url": "/umbauten-renovationen-sanierungen",
+    "redirect_type": "301"
+  },
+  {
+    "id": "24",
+    "old_url": "/datenschutz.html",
+    "new_url": "/datenschutz",
+    "redirect_type": "301"
+  },
+  {
+    "id": "25",
+    "old_url": "/ratgeber",
+    "new_url": "/ratgeber-umbau-renovation",
+    "redirect_type": "301"
+  },
+  {
+    "id": "26",
+    "old_url": "/ratgeber-umbau-renovation",
+    "new_url": "/ratgeber-umbau-renovation-baudienstleistungen",
+    "redirect_type": "301"
+  },
+  {
+    "id": "27",
+    "old_url": "/ratgeber-umbau-renovation-baudienstleistungen",
+    "new_url": "/ratgeber-umbau-renovation-sanierung",
+    "redirect_type": "301"
+  },
+  {
+    "id": "28",
+    "old_url": "/llm-info",
+    "new_url": "/llm.txt",
+    "redirect_type": "301"
+  },
+  {
+    "id": "29",
+    "old_url": "/llm.txt",
+    "new_url": "/llm-info",
+    "redirect_type": "301"
+  }
+]

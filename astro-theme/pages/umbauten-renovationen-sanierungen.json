@@ -1,0 +1,161 @@
+{
+  "title": "kp services GmbH | Umbauten, Renovationen, Altbausanierungen",
+  "description": "Wir bieten professionelle Baudienstleistungen und Montagen an - alles mit unserem zuverlässigen und erfahrenen Personal.",
+  "slug": "umbauten-renovationen-sanierungen",
+  "template": 1,
+  "menuTitle": "Handwerk",
+  "hideMenu": false,
+  "published": true,
+  "blocks": [
+    {
+      "type": "hero",
+      "title": "<b>Umbauten, Renovationen, Altbausanierungen &amp; Abbrucharbeiten</b>",
+      "subtitle": "",
+      "backgroundImage": "/assets/userupload/assets/uploads/kp-personal-Titelbild-Header.jpg",
+      "backgroundVideo": "",
+      "backgroundPosition": "center",
+      "overlayOpacity": 1,
+      "minHeight": "medium",
+      "textAlign": "s-align-c",
+      "verticalAlign": "bottom"
+    },
+    {
+      "type": "section",
+      "marginTop": "margin-t-80",
+      "marginBottom": "margin-b-80",
+      "backgroundColor": "",
+      "textAlign": "",
+      "anchor": "",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "grid",
+          "columns": "30-70",
+          "cells": [
+            [
+              {
+                "type": "image",
+                "src": "/assets/uploads/werkzeuge-weiss_1.png",
+                "alt": "",
+                "width": 512,
+                "height": 513,
+                "cover": false,
+                "borderless": false,
+                "position": ""
+              }
+            ],
+            [
+              {
+                "type": "heading",
+                "text": "<b>Professionelle Bauarbeiten von A - Z</b>",
+                "level": "h2",
+                "textAlign": ""
+              },
+              {
+                "type": "html",
+                "content": "<hr style=\"max-width:50px;height:5px;margin-left:0px;background-color:var(--page-color3);border:0px\" ></hr>"
+              },
+              {
+                "type": "text",
+                "content": "<p>Unser Unternehmen ist führend in der Bereitstellung erstklassiger Dienstleistungen für Umbauten, Renovationen, Altbausanierungen und Abbrucharbeiten. Dank eines fokussierten Ansatzes und jahrelanger Erfahrung bieten wir umfassende Lösungen für Ihre Bauprojekte und Umzugsbedürfnisse an.</p>\n<p><strong>Abbrucharbeiten:</strong> Unser Team von Fachleuten ist spezialisiert auf Abbrucharbeiten jeder Art und Grösse. Wir nutzen modernste Methoden, um sicherzustellen, dass Abbrucharbeiten effizient und präzise durchgeführt werden.</p>\n<p><strong>Umbauten:</strong> Von der einfachen Anpassung bis hin zur kompletten Neugestaltung bieten wir professionelle Dienstleistungen an, die Ihren Anforderungen entsprechen. Unsere Experten kümmern sich um jede Phase des Umbauprozesses, um einwandfreie Ergebnisse zu gewährleisten.</p>\n<p><strong>Renovationen:</strong> Wir verstehen die Bedeutung einer sorgfältigen Renovation für Ihre Immobilie. Unser Team geht strategisch vor, um Renovationen effizient und sicher durchzuführen, unter Berücksichtigung aller notwendigen Standards und Vorschriften.</p>\n<p><strong>Altbausanierungen:</strong> Altbauten erfordern spezielle Sorgfalt und Fachwissen. Wir bieten umfassende Unterstützung bei der Sanierung und Restaurierung, um den historischen Wert Ihrer Immobilie zu erhalten und gleichzeitig moderne Standards zu erfüllen.</p>\n<p>Unser Unternehmen ist darauf spezialisiert, die besten Lösungen für Umbauten, Renovationen, Altbausanierungen und Abbrucharbeiten anzubieten. Kontaktieren Sie uns noch heute, um mehr über unsere Dienstleistungen zu erfahren und wie wir Ihnen helfen können, Ihr nächstes Projekt erfolgreich umzusetzen.</p>",
+                "maxWidth": false
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "marginTop": "",
+      "marginBottom": "",
+      "backgroundColor": "",
+      "textAlign": "",
+      "anchor": "",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "gallery",
+          "columns": 3,
+          "images": [
+            {
+              "src": "/assets/uploads/Abbrucharbeten-kp-services.jpg",
+              "alt": "Abbrucharbeten-kp-services.jpg",
+              "width": 1000,
+              "height": 563,
+              "link": ""
+            },
+            {
+              "src": "/assets/uploads/kp-service-Galeriebild-10.jpg",
+              "alt": "",
+              "width": 800,
+              "height": 600,
+              "link": ""
+            },
+            {
+              "src": "/assets/uploads/KP-Services-Montage.jpg",
+              "alt": "",
+              "width": 2048,
+              "height": 1366,
+              "link": ""
+            },
+            {
+              "src": "/assets/uploads/kp-service-Galeriebild-11.jpg",
+              "alt": "",
+              "width": 800,
+              "height": 600,
+              "link": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "marginTop": "margin-t-20",
+      "marginBottom": "Kein Abstand",
+      "backgroundColor": "",
+      "textAlign": "",
+      "anchor": "",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "grid",
+          "columns": "30-70",
+          "cells": [
+            [
+              {
+                "type": "image",
+                "src": "/assets/userupload/Logo_kp_services_Webseite_kleiner.png",
+                "alt": "",
+                "width": 2250,
+                "height": 669,
+                "cover": false,
+                "borderless": false,
+                "position": ""
+              }
+            ],
+            [
+              {
+                "type": "heading",
+                "text": "<b>Kontaktieren Sie uns noch heute für eine unverbindliche Offerte</b>",
+                "level": "h2",
+                "textAlign": ""
+              },
+              {
+                "type": "html",
+                "content": "<hr style=\"max-width:50px;height:5px;margin-left:0px;background-color:var(--page-color3);border:0px\" ></hr>"
+              },
+              {
+                "type": "text",
+                "content": "<p>Gerne unterbreiten wir Ihnen ein entsprechendes Angebot, sei es zur Abdeckung einer kurzfristigen Spitze oder für eine langfristige und gewinnbringende Partnerschaft.&nbsp;Mit unserem Standort in Basel sind wir in der Nordwestschweiz zu Hause, können aber nebst den Kantonen Basel-Stadt, Baselland, Aargau und Solothurn natürlich die ganze deutschsprachige Schweiz abdecken.</p>",
+                "maxWidth": false
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "_m": "b7264r9s"
+}

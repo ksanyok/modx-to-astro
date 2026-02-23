@@ -1,4 +1,6 @@
 ---
+import { Image } from 'astro:assets';
+import { resolveImage } from '../utils/imageLoader';
 import { socialIcons, socialLabel } from '../utils/socialIcons';
 
 interface NavItem {
@@ -17,6 +19,7 @@ interface Props {
 
 const { navigation = [], companyName = 'Company', logo = '', socialLinks = [], transparent = false } = Astro.props;
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
+const resolvedLogo = logo ? await resolveImage(logo) : null;
 ---
 <header
   class:list={[
@@ -28,7 +31,9 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
   <div class="max-w-6xl mx-auto px-5 sm:px-6 lg:px-8">
     <div class="flex justify-between items-center h-16 sm:h-[72px]">
       <a href="/" class="flex items-center gap-2.5 shrink-0 group">
-        {logo ? (
+        {resolvedLogo ? (
+          <Image src={resolvedLogo} alt={companyName} height={80} loading="eager" format="webp" class="h-8 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
+        ) : logo ? (
           <img src={logo} alt={companyName} class="h-8 sm:h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105" />
         ) : (
           <span class:list={[

@@ -1,0 +1,34 @@
+{
+  "title": "Max Muster",
+  "description": "",
+  "slug": "max-muster",
+  "template": 7,
+  "menuTitle": "Max Muster",
+  "hideMenu": true,
+  "published": false,
+  "blocks": [
+    {
+      "type": "html",
+      "content": "\n    <div class=\"bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex gap-4 items-start\">\n      <img src=\"/assets/userupload/assets/uploads/expert.png\" alt=\"Max Muster\" class=\"w-16 h-16 rounded-full object-cover\" />\n      <div>\n        <div class=\"font-bold text-lg\">Max Muster</div>\n        <div class=\"text-sm text-slate-500\">Eidg. dipl. Heizungsmeister & Geschäftsführer</div>\n        <p class=\"text-sm mt-2 text-slate-600\">\"Technik ist meine Leidenschaft, aber warme Füsse sind mein Ziel. Seit über 20 Jahren beschäftige ich mich damit, wie wir alte Häuser effizient und kostenschonend in die Zukunft bringen können. Für mich zählt nicht das teuerste Gerät, sondern die Lösung, die zu Ihrem Haus passt.\"</p>\n      </div>\n    </div>\n  "
+    },
+    {
+      "type": "heading",
+      "text": "Ausbildung & Werdegang",
+      "level": "h2"
+    },
+    {
+      "type": "text",
+      "content": "<div class=\"ai-expert__timeline\">\n        <article class=\"ai-expert__titem\">\n          <div class=\"ai-expert__year\">2005</div>\n          <div class=\"ai-expert__role\">Eidg. Höhere Fachprüfung (Meister)</div>\n          <div class=\"ai-expert__desc\">Abschluss als eidg. dipl. Heizungsmeister an der Gewerbeschule Zürich.</div>\n        </article>\n\n        <article class=\"ai-expert__titem\">\n          <div class=\"ai-expert__year\">1998 – 2001</div>\n          <div class=\"ai-expert__role\">Lehre als Heizungsmonteur</div>\n          <div class=\"ai-expert__desc\">Duale Ausbildung mit Auszeichnung abgeschlossen.</div>\n        </article>\n      </div>"
+    },
+    {
+      "type": "heading",
+      "text": "So halte ich mein Wissen aktuell",
+      "level": "h2"
+    },
+    {
+      "type": "text",
+      "content": "Die Heiztechnik entwickelt sich rasant. Um Ihnen die besten Lösungen zu bieten, investiere ich jährlich ca. 100 Stunden in Weiterbildungen."
+    }
+  ],
+  "_m": "b7264r9s"
+}

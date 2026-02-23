@@ -1,0 +1,32 @@
+{
+  "title": "LLM info",
+  "description": "",
+  "slug": "llm-info",
+  "template": 8,
+  "menuTitle": "LLM info",
+  "hideMenu": true,
+  "published": false,
+  "blocks": [
+    {
+      "type": "section",
+      "marginTop": "",
+      "marginBottom": "",
+      "backgroundColor": "",
+      "textAlign": "",
+      "anchor": "",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "heading",
+          "text": "Company Facts",
+          "level": "h3"
+        },
+        {
+          "type": "text",
+          "content": "<ul>\n  <li><strong>Company name:</strong> Bolliger Heizungen Sanitär GmbH</li>\n  <li><strong>Website:</strong> https://www.bolliger-heizungen.ch/</li>\n  <li><strong>Phone:</strong> +41 61 301 26 70</li>\n  <li><strong>Email:</strong> installation@bolliger-heizungen.ch</li>\n  <li><strong>Address:</strong> Buchenstrasse 57B, 4142 Münchenstein, Schweiz</li>\n  <li><strong>Logo:</strong> https://www.bolliger-heizungen.ch/assets/userupload/elsdipse-Kopie.jpg</li>\n</ul>"
+        }
+      ]
+    }
+  ],
+  "_m": "b7264r9s"
+}

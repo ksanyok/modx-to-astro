@@ -7,7 +7,10 @@ interface Props {
   lang?: string;
   canonicalUrl?: string;
   ogImage?: string;
-  heroImage?: string;
+  /** Hashed URL of the hero image at 1920w — used for <link rel="preload"> in <head> */
+  heroPreloadSrc?: string;
+  /** Full imagesrcset string for the hero image preload */
+  heroPreloadSrcset?: string;
   favicon?: string;
   noindex?: boolean;
   maxLayoutWidth?: number;
@@ -31,7 +34,8 @@ const {
   lang = 'de',
   canonicalUrl,
   ogImage,
-  heroImage,
+  heroPreloadSrc = '',
+  heroPreloadSrcset = '',
   favicon,
   noindex = false,
   maxLayoutWidth = 1200,
@@ -61,15 +65,45 @@ const themeVars = [
   maxLayoutWidth && `--layout-max-width: ${maxLayoutWidth}px`,
 ].filter(Boolean).join('; ');
 
-// Extract font family names for Google Fonts URL
+// Extract font family names from theme CSS font stacks (e.g. "'Montserrat', sans-serif")
 function extractFontNames(fontStr: string): string[] {
   if (!fontStr) return [];
   const matches = fontStr.match(/'([^']+)'/g);
   return matches ? matches.map((m: string) => m.replace(/'/g, '').trim()).filter((f: string) => !['sans-serif', 'serif', 'cursive', 'monospace', 'system-ui'].includes(f)) : [];
 }
 const fontNames = [...new Set([...extractFontNames(theme.bodyFont || ''), ...extractFontNames(theme.headingFont || '')])];
-const googleFontsUrl = fontNames.length > 0
-  ? `https://fonts.googleapis.com/css2?${fontNames.map((f: string) => `family=${f.replace(/\s+/g, '+')}:wght@300;400;500;600;700`).join('&')}&display=swap`
+
+// Self-hosted fonts: map display names → local slug and available weights
+// Fonts are in /public/fonts/{slug}-{weight}.woff2 (served at /fonts/)
+const SELF_HOSTED: Record<string, { slug: string; weights: number[] }> = {
+  'Montserrat':       { slug: 'montserrat',       weights: [400, 600, 700] },
+  'Comfortaa':        { slug: 'comfortaa',         weights: [400, 600, 700] },
+  'Roboto':           { slug: 'roboto',            weights: [400, 600, 700] },
+  'Quicksand':        { slug: 'quicksand',         weights: [400, 600, 700] },
+  'Oswald':           { slug: 'oswald',            weights: [400, 600, 700] },
+  'Inter':            { slug: 'inter',             weights: [400, 600, 700] },
+  'Frank Ruhl Libre': { slug: 'frank-ruhl-libre',  weights: [400, 600, 700] },
+  'Raleway':          { slug: 'raleway',           weights: [400, 600, 700] },
+  'Lato':             { slug: 'lato',              weights: [400, 700] },
+  'Open Sans':        { slug: 'open-sans',         weights: [400, 600, 700] },
+  'Nunito':           { slug: 'nunito',            weights: [400, 600, 700] },
+  'Poppins':          { slug: 'poppins',           weights: [400, 600, 700] },
+};
+
+// Build @font-face CSS for fonts that are available locally; fall back to Google Fonts for unknown ones
+const fallbackFontNames: string[] = [];
+const localFontFaces = fontNames.flatMap((name: string) => {
+  const entry = SELF_HOSTED[name];
+  if (!entry) { fallbackFontNames.push(name); return []; }
+  return entry.weights.map((w: number) => (
+    `@font-face{font-family:'${name}';src:url('/fonts/${entry.slug}-${w}.woff2') format('woff2');` +
+    `font-weight:${w};font-style:normal;font-display:optional;}`
+  ));
+}).join('');
+
+// Only use Google Fonts for any fonts NOT available locally (rare / custom fonts)
+const googleFontsUrl = fallbackFontNames.length > 0
+  ? `https://fonts.googleapis.com/css2?${fallbackFontNames.map((f: string) => `family=${f.replace(/\s+/g, '+')}:wght@400;600;700`).join('&')}&display=optional`
   : '';
 ---
 <!doctype html>
@@ -84,17 +118,23 @@ const googleFontsUrl = fontNames.length > 0
     <link rel="canonical" href={canonical} />
     {favicon && <link rel="icon" href={favicon} />}
 
-    {/* Preload LCP hero image handled by Astro <Image loading="eager" fetchpriority="high"> in Hero component */}
+    {/* Preload LCP hero image — exact hashed WebP URLs computed by getImage() in PageLayout */}
+    {heroPreloadSrc && (
+      <link rel="preload" as="image" href={heroPreloadSrc} fetchpriority="high"
+        imagesrcset={heroPreloadSrcset || undefined}
+        imagesizes={heroPreloadSrcset ? '100vw' : undefined}
+      />
+    )}
     
-    {/* Google Fonts — loaded async to avoid render-blocking (media=print trick) */}
+    {/* Self-hosted fonts — @font-face from same origin, zero external requests, no DNS delay */}
+    {localFontFaces && <style set:html={localFontFaces} />}
+
+    {/* Fallback: Google Fonts for any fonts not available locally (loaded async, non-blocking) */}
     {googleFontsUrl && (
       <link rel="preconnect" href="https://fonts.googleapis.com" />
     )}
     {googleFontsUrl && (
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    )}
-    {googleFontsUrl && (
-      <link rel="preload" as="style" href={googleFontsUrl} />
     )}
     {googleFontsUrl && (
       <link rel="stylesheet" href={googleFontsUrl} media="print" onload="this.media='all'" />
@@ -119,31 +159,45 @@ const googleFontsUrl = fontNames.length > 0
     <title>{title}</title>
     <!-- b7264r9s -->
 
-    {/* Google Tag Manager */}
+    {/* Google Tag Manager — lazy loaded after first user interaction to avoid render impact */}
     {analyticsId && analyticsType === 'tagmanager' && (
       <script is:inline define:vars={{ analyticsId }}>
-        (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-        new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-        j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-        'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-        })(window,document,'script','dataLayer', analyticsId);
+        function _loadGTM() {
+          if (window.__gtmLoaded) return;
+          window.__gtmLoaded = true;
+          (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+          new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+          j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+          'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+          })(window,document,'script','dataLayer', analyticsId);
+        }
+        ['click','scroll','keydown','touchstart'].forEach(function(e){
+          document.addEventListener(e, _loadGTM, {once:true, passive:true});
+        });
+        setTimeout(_loadGTM, 5000); // fallback: load after 5s even without interaction
       </script>
     )}
 
-    {/* Google Analytics 4 */}
+    {/* Google Analytics 4 — lazy loaded after first user interaction */}
     {analyticsId && analyticsType === 'analytics' && (
       <script is:inline define:vars={{ analyticsId }}>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', analyticsId);
+        function _loadGA() {
+          if (window.__gaLoaded) return;
+          window.__gaLoaded = true;
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=' + analyticsId;
+          document.head.appendChild(s);
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', analyticsId);
+        }
+        ['click','scroll','keydown','touchstart'].forEach(function(e){
+          document.addEventListener(e, _loadGA, {once:true, passive:true});
+        });
+        setTimeout(_loadGA, 5000);
       </script>
-    )}
-    {analyticsId && analyticsType === 'analytics' && (
-      <script is:inline define:vars={{ analyticsId }}
-        src={`https://www.googletagmanager.com/gtag/js?id=${analyticsId}`}
-        async
-      />
     )}
   </head>
   <body class="bg-(--color-bg) text-(--color-text) font-sans antialiased" style={themeVars || undefined}>

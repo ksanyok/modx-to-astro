@@ -1,0 +1,161 @@
+{
+  "title": "kp services GmbH | Gärtner - Gartenhelfer Basel, Baselland, Aargau",
+  "description": "Wir bieten professionelle Gartenpflege in Basel, Baselland und Aargau an - alles mit unserem zuverlässigen und erfahrenen Personal.",
+  "slug": "gartenarbeit-gartenhelfer-gaertner",
+  "template": 1,
+  "menuTitle": "Gartenpflege",
+  "hideMenu": false,
+  "published": true,
+  "blocks": [
+    {
+      "type": "hero",
+      "title": "<b>Gartenpflege &amp; Gartenunterhalt</b>",
+      "subtitle": "",
+      "backgroundImage": "/assets/userupload/assets/uploads/kp-personal-Titelbild-Gartenservice.jpg",
+      "backgroundVideo": "",
+      "backgroundPosition": "center",
+      "overlayOpacity": 1,
+      "minHeight": "medium",
+      "textAlign": "s-align-c",
+      "verticalAlign": "bottom"
+    },
+    {
+      "type": "section",
+      "marginTop": "margin-t-80",
+      "marginBottom": "margin-b-80",
+      "backgroundColor": "",
+      "textAlign": "",
+      "anchor": "",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "grid",
+          "columns": "30-70",
+          "cells": [
+            [
+              {
+                "type": "image",
+                "src": "/assets/uploads/feld-weiss_1.png",
+                "alt": "",
+                "width": 512,
+                "height": 512,
+                "cover": false,
+                "borderless": false,
+                "position": ""
+              }
+            ],
+            [
+              {
+                "type": "heading",
+                "text": "<b>Gärtner &amp; Gartenpflege in Basel, Baselland &amp; Aargau</b>",
+                "level": "h2",
+                "textAlign": ""
+              },
+              {
+                "type": "html",
+                "content": "<hr style=\"max-width:50px;height:5px;margin-left:0px;background-color:var(--page-color3);border:0px\" ></hr>"
+              },
+              {
+                "type": "text",
+                "content": "<p>Unser Gartenpflege-Service bietet Ihnen umfangreichen Gartenunterhalt, präzise Bepflanzungen sowie erstklassige Rasenpflege, Schnitt- und Jätarbeiten in den Regionen Basel, Baselland und Aargau. Wir sind Ihr Partner für die Pflege und Verschönerung Ihrer Aussenanlagen.</p>\n<p><strong>Gartenunterhalt</strong>: Ein gepflegter Garten ist eine Oase der Ruhe. Unser Gartenunterhaltsservice umfasst regelmässige Pflege, um Ihre Grünanlagen gesund und ansprechend zu halten. Wir kümmern uns um Rasenmähen, Unkrautentfernung, Bewässerung und allgemeine Pflegearbeiten.</p>\n<p><strong>Bepflanzungen</strong>: Von kleinen Blumenbeeten bis hin zu umfassenden Gartengestaltungen - unsere Bepflanzungsdienste bieten kreative Lösungen für jede Art von Aussenbereich. Wir planen, gestalten und setzen Bepflanzungen nach Ihren Vorstellungen um.</p>\n<p><strong>Rasenpflege</strong>: Ein sattgrüner Rasen ist das Herzstück eines Gartens. Unsere Rasenpflege umfasst regelmässiges Mähen, Düngen und Belüften, um einen gesunden und attraktiven Rasen zu gewährleisten, der jeden Garten aufwertet.<br></p>\n<p><a href=\"/startseite\" target=\"_blank\">Unsere Dienstleistungen</a> im Bereich Gartenunterhalt, Bepflanzungen, Rasenpflege&nbsp;in Basel, Baselland und Aargau sind darauf ausgerichtet, Ihren Garten in eine atemberaubende und gepflegte Umgebung zu verwandeln. Kontaktieren Sie uns, um mehr über unsere massgeschneiderten Services zu erfahren und wie wir Ihnen dabei helfen können, Ihren Garten zu verschönern und zu pflegen.<br></p>",
+                "maxWidth": false
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "marginTop": "",
+      "marginBottom": "",
+      "backgroundColor": "",
+      "textAlign": "",
+      "anchor": "",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "gallery",
+          "columns": 3,
+          "images": [
+            {
+              "src": "/assets/uploads/gartenpflege-gartenservice-basel-baselland-aargau_1789023152.jpg",
+              "alt": "gartenpflege-gartenservice-basel-baselland-aargau_1789023152.jpg",
+              "width": 500,
+              "height": 264,
+              "link": ""
+            },
+            {
+              "src": "/assets/uploads/gartenpflege-gartenservice-basel-baselland-aargau_2262765827.jpg",
+              "alt": "gartenpflege-gartenservice-basel-baselland-aargau_2262765827.jpg",
+              "width": 500,
+              "height": 333,
+              "link": ""
+            },
+            {
+              "src": "/assets/uploads/gartenpflege-gartenservice-basel-baselland-aargau_2125249121.jpg",
+              "alt": "gartenpflege-gartenservice-basel-baselland-aargau_2125249121.jpg",
+              "width": 500,
+              "height": 315,
+              "link": ""
+            },
+            {
+              "src": "/assets/uploads/gartenpflege-gartenservice-basel-baselland-aargau_1446586790.jpg",
+              "alt": "gartenpflege-gartenservice-basel-baselland-aargau_1446586790.jpg",
+              "width": 500,
+              "height": 334,
+              "link": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "marginTop": "margin-t-20",
+      "marginBottom": "Kein Abstand",
+      "backgroundColor": "",
+      "textAlign": "",
+      "anchor": "",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "grid",
+          "columns": "30-70",
+          "cells": [
+            [
+              {
+                "type": "image",
+                "src": "/assets/userupload/Logo_kp_services_Webseite_kleiner.png",
+                "alt": "",
+                "width": 2250,
+                "height": 669,
+                "cover": false,
+                "borderless": false,
+                "position": ""
+              }
+            ],
+            [
+              {
+                "type": "heading",
+                "text": "<b>Kontaktieren Sie uns noch heute für eine unverbindliche Offerte</b>",
+                "level": "h2",
+                "textAlign": ""
+              },
+              {
+                "type": "html",
+                "content": "<hr style=\"max-width:50px;height:5px;margin-left:0px;background-color:var(--page-color3);border:0px\" ></hr>"
+              },
+              {
+                "type": "text",
+                "content": "<p>Gerne unterbreiten wir Ihnen ein entsprechendes Angebot, sei es zur Abdeckung einer kurzfristigen Spitze oder für eine langfristige und gewinnbringende Partnerschaft.&nbsp;Mit unserem Standort in Basel sind wir in der Nordwestschweiz zu Hause, können aber nebst den Kantonen Basel-Stadt, Baselland, Aargau und Solothurn natürlich die ganze deutschsprachige Schweiz abdecken.</p>",
+                "maxWidth": false
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "_m": "b7264r9s"
+}

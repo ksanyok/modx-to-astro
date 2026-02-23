@@ -1,0 +1,194 @@
+{
+  "title": "kp services GmbH | Reinigungen & Montagen in der Nordwestschweiz",
+  "description": "Wir bieten professionelle Reinigungsdienstleistungen und Montagen an - alles mit unserem zuverlässigen und erfahrenen Personal.",
+  "slug": "",
+  "isHomepage": true,
+  "template": 1,
+  "blocks": [
+    {
+      "type": "hero",
+      "title": "<b>Professionelle Baudienstleistungen</b>",
+      "subtitle": "Ihr Partner in der gesamten Nordwestschweiz",
+      "backgroundImage": "/assets/userupload/assets/uploads/kp-personal-Titelbild-neuneu.jpg",
+      "backgroundVideo": "",
+      "backgroundPosition": "bottom",
+      "overlayOpacity": 1,
+      "minHeight": "medium",
+      "textAlign": "s-align-c",
+      "verticalAlign": "bottom"
+    },
+    {
+      "type": "section",
+      "marginTop": "margin-t-80",
+      "marginBottom": "margin-b-80",
+      "backgroundColor": "#ffffff",
+      "textAlign": "s-align-c",
+      "anchor": "",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "heading",
+          "text": "<b>Wir sind für Sie da!</b>",
+          "level": "h5",
+          "textAlign": ""
+        },
+        {
+          "type": "heading",
+          "text": "<b>Ihr Unternehmen für Baudienstleistungen von Basel bis Aargau</b>",
+          "level": "h2",
+          "textAlign": ""
+        },
+        {
+          "type": "html",
+          "content": "<hr style=\"max-width:50px;height:5px;margin-left:auto;background-color:var(--page-color3);border:0px\" ></hr>"
+        },
+        {
+          "type": "text",
+          "content": "<p>Unser Fokus liegt in den Bedürfnissen unserer Kunden. Gemäss Ihrem Wunsch übernehmen wir Ihre kompletten Aufträge oder unterstützen Sie punktuell sowie im Abonnement. Unsere Fachkräfte sind Spezialisten aus den jeweiligen Branchen und spezialisiert auf Montage, Rückbau, Umzug, Gartenarbeiten und Reinigung.</p>",
+          "maxWidth": true
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "marginTop": "Kein Abstand",
+      "marginBottom": "margin-b-80",
+      "backgroundColor": "#ffffff",
+      "textAlign": "s-align-c",
+      "anchor": "dienstleistungen",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "grid",
+          "columns": "25-25-25-25",
+          "cells": [
+            [
+              {
+                "type": "text",
+                "content": "<figure style=\"text-align: center; margin-left: auto; margin-right: auto;\"><a href=\"/umbauten-renovationen-sanierungen\" target=\"_blank\"><img src=\"/assets/uploads/werkzeuge-weiss_1.png\" data-src=\"/assets/uploads/werkzeuge-weiss_1.png\" alt=\"Dienstleistung 1\" width=\"187\" height=\"187\" style=\"width: 187px; max-width: 187px; height: 187px;\"></a></figure>\n<p></p>\n<h4><strong>Handwerk</strong></h4>\n<p>Abbrucharbeiten<br>Montage<br>Rückbau<br>Möbelservice</p>",
+                "maxWidth": false,
+                "cardLink": "/umbauten-renovationen-sanierungen"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "content": "<figure style=\"text-align: center; margin-left: auto; margin-right: auto;\"><a href=\"/reinigungen-reinigunsservice-reinigungsfirma\" target=\"_blank\"><img src=\"/assets/uploads/reinigung-weiss-300x300_1.png\" data-src=\"/assets/uploads/reinigung-weiss-300x300_1.png\" alt=\"Dienstleistung 2\" width=\"187\" height=\"187\" style=\"width: 187px; max-width: 187px; height: 187px;\"></a></figure>\n<p></p>\n<h4><strong>Reinigung</strong></h4>\n<p>Büroreinigungen<br>Baustellenreinigungen<br>Umzugsreinigungen<br>Fenster & Teppichreinigungen</p>",
+                "maxWidth": false,
+                "cardLink": "/reinigungen-reinigunsservice-reinigungsfirma"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "content": "<figure style=\"text-align: center; margin-left: auto; margin-right: auto;\"><a href=\"/umzugshelfer-umzugsservice-umzugsfirma\" target=\"_blank\"><img src=\"/assets/uploads/lieferwagen-weiss_1.png\" data-src=\"/assets/uploads/lieferwagen-weiss_1.png\" alt=\"Dienstleistung 3\" width=\"187\" height=\"187\" style=\"width: 193px; max-width:187px; height: 187px;\"></a></figure>\n<p></p>\n<h4><strong>Transport</strong></h4>\n<p>Umzug<br>Räumungen<br>Entsorgung<br>Lieferungen</p>",
+                "maxWidth": false,
+                "cardLink": "/umzugshelfer-umzugsservice-umzugsfirma"
+              }
+            ],
+            [
+              {
+                "type": "text",
+                "content": "<figure style=\"text-align: center; margin-left: auto; margin-right: auto;\"><a href=\"/gartenarbeit-gartenhelfer-gaertner\" target=\"_blank\"><img src=\"/assets/uploads/feld-weiss_1.png\" data-src=\"/assets/uploads/feld-weiss_1.png\" alt=\"Dienstleistung 4\" width=\"187\" height=\"187\" style=\"width: 187px; max-width: 187px; height: 187px;\"></a></figure>\n<p></p>\n<h4><strong>Gartenarbeit\n\n    </strong></h4>\n<p>Gartenunterhalt<br>Bepflanzungen<br>Rasenpflege<br>Schnitt- & Jätarbeiten</p>",
+                "maxWidth": false,
+                "cardLink": "/gartenarbeit-gartenhelfer-gaertner"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "marginTop": "Kein Abstand",
+      "marginBottom": "margin-b-60",
+      "backgroundColor": "",
+      "textAlign": "",
+      "anchor": "",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "gallery",
+          "columns": 3,
+          "images": [
+            {
+              "src": "/assets/uploads/KP-Services-Montage.jpg",
+              "alt": "",
+              "width": 2048,
+              "height": 1366,
+              "link": ""
+            },
+            {
+              "src": "/assets/uploads/kp service Galeriebild 3_1.jpg",
+              "alt": "kp service Galeriebild 3.jpg",
+              "width": 800,
+              "height": 600,
+              "link": ""
+            },
+            {
+              "src": "/assets/uploads/Umzugsservice-basel-baselland-aargau.jpg",
+              "alt": "",
+              "width": 500,
+              "height": 334,
+              "link": ""
+            },
+            {
+              "src": "/assets/uploads/Gartenarbit-gartenservice-basel-baselland-aargau.jpg",
+              "alt": "Gartenarbit-gartenservice-basel-baselland-aargau.jpg",
+              "width": 1000,
+              "height": 633,
+              "link": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "section",
+      "marginTop": "margin-t-80",
+      "marginBottom": "Kein Abstand",
+      "backgroundColor": "",
+      "textAlign": "",
+      "anchor": "",
+      "fullWidth": false,
+      "children": [
+        {
+          "type": "grid",
+          "columns": "30-70",
+          "cells": [
+            [
+              {
+                "type": "image",
+                "src": "/assets/userupload/Logo_kp_services_Webseite_kleiner.png",
+                "alt": "",
+                "width": 2250,
+                "height": 669,
+                "cover": false,
+                "borderless": false,
+                "position": ""
+              }
+            ],
+            [
+              {
+                "type": "heading",
+                "text": "<b>Kontaktieren Sie uns noch heute für eine unverbindliche Offerte</b>",
+                "level": "h2",
+                "textAlign": ""
+              },
+              {
+                "type": "html",
+                "content": "<hr style=\"max-width:50px;height:5px;margin-left:0px;background-color:var(--page-color3);border:0px\" ></hr>"
+              },
+              {
+                "type": "text",
+                "content": "<p>Gerne unterbreiten wir Ihnen ein entsprechendes Angebot, sei es zur Abdeckung einer kurzfristigen Spitze oder für eine langfristige und gewinnbringende Partnerschaft.&nbsp;Mit unserem Standort in Basel sind wir in der Nordwestschweiz zu Hause, können aber nebst den Kantonen Basel-Stadt, Baselland, Aargau und Solothurn natürlich die ganze deutschsprachige Schweiz abdecken.</p>",
+                "maxWidth": true
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  ],
+  "_m": "b7264r9s"
+}
