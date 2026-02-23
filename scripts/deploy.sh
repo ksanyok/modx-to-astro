@@ -91,7 +91,6 @@ echo "→ Syncing to staging..."
 rsync -az --delete --inplace --compress-level=9 \
   --exclude='.well-known' \
   --exclude='cgi-bin' \
-  --exclude='.htaccess' \
   --exclude='.user.ini' \
   "$DIST_DIR/" \
   "${DEPLOY_HOST}:${STAGING}/"

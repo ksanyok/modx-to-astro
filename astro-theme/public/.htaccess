@@ -1,0 +1,36 @@
+# b7264r9s | buyreadysite.com
+# Cache-Control for static assets (hashed filenames = safe 1 year)
+
+<IfModule mod_headers.c>
+  # Hashed Astro build assets — immutable (css, js with hash in filename)
+  <FilesMatch "\.(css|js)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+
+  # Media assets — 6 months
+  <FilesMatch "\.(webp|jpg|jpeg|png|gif|svg|ico|woff2|woff|ttf|eot|otf)$">
+    Header set Cache-Control "public, max-age=15552000"
+  </FilesMatch>
+
+  # HTML — revalidate every hour
+  <FilesMatch "\.html$">
+    Header set Cache-Control "public, max-age=3600, must-revalidate"
+  </FilesMatch>
+
+  # Security headers
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Gzip compression
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml
+  AddOutputFilterByType DEFLATE application/javascript application/json application/xml
+  AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# Brotli (if available)
+<IfModule mod_brotli.c>
+  AddOutputFilterByType BROTLI_COMPRESS text/html text/css application/javascript
+</IfModule>

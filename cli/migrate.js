@@ -1856,7 +1856,20 @@ async function convertToWebP(publicAssetsDir) {
           continue;
         }
         try {
-          await sharp(srcFile).webp({ quality: 85 }).toFile(destFile);
+          // Resize if image dimensions exceed practical display limits.
+          // Max 1600px for regular images (saves 60-80% bytes for 2048px+ photos).
+          const meta = await sharp(srcFile).metadata();
+          const MAX = 1600;
+          let pipeline = sharp(srcFile);
+          if (meta.width && meta.height) {
+            const longest = Math.max(meta.width, meta.height);
+            if (longest > MAX) {
+              pipeline = meta.width >= meta.height
+                ? pipeline.resize({ width: MAX, withoutEnlargement: true })
+                : pipeline.resize({ height: MAX, withoutEnlargement: true });
+            }
+          }
+          await pipeline.webp({ quality: 85 }).toFile(destFile);
           fs.unlinkSync(srcFile);
           pathMap.set(`${urlPrefix}${entry.name}`, `${urlPrefix}${webpName}`);
         } catch {
