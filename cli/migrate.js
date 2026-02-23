@@ -174,11 +174,13 @@ async function main() {
 
   // Copy assets
   log.section('Step 4: Copying media assets');
-  // Images go to src/assets/ so Astro's <Image> can generate responsive srcset at build time
+  // Primary destination: src/assets/ — Astro <Image> reads these at build time
+  // to generate hashed, responsive srcset variants (/_astro/name.hash_360w.webp etc.)
   const srcAssetsDir = path.join(OUT_PATH, '..', 'assets');
   await copyAssets(ASSETS_PATH, srcAssetsDir);
 
-  // Step 5: Convert images to WebP (no resize — Astro generates sizes via srcset)
+  // Step 5: Convert images to WebP
+  // Astro <Image> handles all responsive resizing via srcset — no manual resize needed.
   log.section('Step 5: Converting images to WebP');
   const pathMap = await convertToWebP(srcAssetsDir);
   if (pathMap.size > 0) {
@@ -187,6 +189,19 @@ async function main() {
   } else {
     log.info('WebP: sharp not available or no images to convert');
   }
+
+  // Step 6: Mirror assets to public/assets/ (static fallback)
+  // Required for:
+  //   - Favicon (<link rel="icon" href="/assets/...">)
+  //   - og:image meta tags (absolute external URL)
+  //   - Raw HTML content blocks (type:"html") with embedded <img src="/assets/...">
+  //   - Fallback <img> tags in components when imageLoader.ts cannot resolve
+  // src/assets/ is the source-of-truth; public/assets/ mirrors it post-conversion.
+  log.section('Step 6: Mirroring assets to public/ (static fallback)');
+  const publicAssetsDir = path.join(OUT_PATH, '..', '..', 'public', 'assets');
+  await fs.emptyDir(publicAssetsDir);
+  await fs.copy(srcAssetsDir, publicAssetsDir, { overwrite: true });
+  log.info('Assets mirrored to public/assets/');
 
   // Summary
   log.section('Migration Complete');

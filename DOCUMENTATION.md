@@ -30,7 +30,9 @@
 This system migrates MODX CMS websites to static Astro sites. It reads a MySQL/MariaDB SQL dump and the MODX `assets/` directory, then generates:
 
 - **JSON content files** compatible with Astro Content Collections (pages, site config, redirects)
-- **Static assets** (images, PDFs, videos) copied to `public/assets/`
+- **Static assets** (images, PDFs, videos) placed in two locations:
+  - `src/assets/` — processed by Astro `<Image>` to auto-generate responsive `srcset` variants
+  - `public/assets/` — static mirror for favicon, `og:image`, raw HTML blocks and fallback `<img>` tags
 - **A fully pre-built Astro site** with all pages, sitemap, 404, and SEO metadata
 
 The result is a fast, secure, zero-maintenance static website that can be hosted anywhere.
@@ -60,8 +62,8 @@ The result is a fast, secure, zero-maintenance static website that can be hosted
 ├─────────────────┤  ├──▶│  Parse SQL        │  ├──▶│   src/content/     │
 │  MODX Assets    │  │   │  Map blocks       │  │   │     pages/*.json   │
 │  (assets/)      │──┘   │  Resolve images   │  │   │     site-config.json│
-│                 │      │  Build config      │  │   │   public/assets/   │
-│                 │      │  Copy assets       │──┘   │   dist/ (built)    │
+│                 │      │  Build config      │  │   │   src/assets/      │
+│                 │      │  Copy assets       │──┘   │   public/assets/   │
 └─────────────────┘      └──────────────────┘      └────────────────────┘
                                                             │
                                                             ▼
@@ -78,9 +80,10 @@ The result is a fast, secure, zero-maintenance static website that can be hosted
 3. **Maps ContentBlocks layouts** to typed JSON blocks (17 layout types)
 4. **Resolves images** using a 5-level resolution strategy
 5. **Outputs JSON** files into `astro-theme/src/content/`
-6. **Copies assets** to `astro-theme/public/assets/`
-7. **Astro builds** the static site using Content Collections
-8. **Deploy** via rsync with atomic swap
+6. **Copies assets** to `astro-theme/src/assets/` — Astro `<Image>` uses these to generate hashed, responsive `srcset` variants at build time
+7. **Mirrors assets** to `astro-theme/public/assets/` — static fallback for favicon, `og:image`, raw HTML blocks, PDF downloads
+8. **Astro builds** the static site using Content Collections
+9. **Deploy** via rsync with atomic swap
 
 ---
 
@@ -294,7 +297,7 @@ Options:
 
 7. **Extracts redirects** from SEO Suite tables
 
-8. **Copies assets** from source `assets/` to `astro-theme/public/assets/`
+8. **Copies assets** from source `assets/` to `astro-theme/src/assets/` (for Astro `<Image>` srcset) and mirrors to `astro-theme/public/assets/` (static fallback for `/assets/...` URLs)
 
 ### Key Functions
 
@@ -314,6 +317,10 @@ Options:
 | `extractClientConfig(sql)` | Reads ClientConfig settings |
 | `extractRedirects(sql)` | Reads SEO Suite redirects |
 | `copyAssets(srcDir, destDir)` | Copies + deduplicates asset files |
+| `convertToWebP(dir)` | Converts JPG/PNG → WebP using sharp, returns path map |
+| `patchImagePaths(outPath, map)` | Rewrites `/assets/foo.jpg` → `/assets/foo.webp` in all JSON |
+
+> **Image pipeline:** assets are copied to **`src/assets/`** (Astro `<Image>` generates hashed `srcset` variants at build time) and mirrored to **`public/assets/`** (static fallback for favicon, `og:image` meta, raw HTML blocks, and any `<img>` tags that cannot be resolved at build time). The utility `src/utils/imageLoader.ts` maps runtime path strings (e.g. `/assets/uploads/foo.webp`) to Astro `ImageMetadata` via `import.meta.glob`.
 
 ### Unit Tests
 
