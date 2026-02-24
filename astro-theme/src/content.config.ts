@@ -1,17 +1,19 @@
 /**
  * Astro Content Collections Configuration
  * Defines the schema for all content types used in the migration pipeline.
- * 
+ *
  * Collections:
  * - pages: Individual page data with structured ContentBlocks
  * - siteConfig: Global site settings (singleton pattern)
+ * - redirects: URL redirect rules
  */
 import { defineCollection, z } from 'astro:content';
 import { glob, file } from 'astro/loaders';
 
 // ─── Block Schemas ──────────────────────────────────────────────────
-// Each block type has its own schema. Using passthrough() allows 
-// forward-compatibility with new block types from different MODX sites.
+// Strict discriminated-union schemas for every known block type.
+// Build will fail loudly if a page JSON contains a block with an unknown type
+// or missing required fields — intentional for the 200-site pipeline.
 
 const heroBlockSchema = z.object({
   type: z.literal('hero'),
@@ -30,6 +32,7 @@ const textBlockSchema = z.object({
   type: z.literal('text'),
   content: z.string(),
   maxWidth: z.boolean().optional().default(false),
+  cardLink: z.string().optional().default(''),
 });
 
 const headingBlockSchema = z.object({
@@ -46,6 +49,9 @@ const imageBlockSchema = z.object({
   link: z.string().optional().default(''),
   width: z.number().optional(),
   height: z.number().optional(),
+  borderless: z.boolean().optional().default(false),
+  cover: z.boolean().optional().default(false),
+  position: z.string().optional().default(''),
 });
 
 const dividerBlockSchema = z.object({
@@ -57,6 +63,7 @@ const dividerBlockSchema = z.object({
 
 const galleryBlockSchema = z.object({
   type: z.literal('gallery'),
+  columns: z.union([z.string(), z.number()]).transform(String).optional().default('3'),
   images: z.array(z.object({
     src: z.string(),
     alt: z.string().optional().default(''),
@@ -77,11 +84,14 @@ const sliderBlockSchema = z.object({
 const videoBlockSchema = z.object({
   type: z.literal('video'),
   src: z.string(),
+  title: z.string().optional().default(''),
 });
 
 const youtubeBlockSchema = z.object({
   type: z.literal('youtube'),
-  videoId: z.string(),
+  // migrate.js writes the field as 'url' (full embed URL or video ID)
+  url: z.string().optional().default(''),
+  videoId: z.string().optional().default(''),
 });
 
 const htmlBlockSchema = z.object({
@@ -91,6 +101,7 @@ const htmlBlockSchema = z.object({
 
 const accordionBlockSchema = z.object({
   type: z.literal('accordion'),
+  negative: z.boolean().optional().default(false),
   items: z.array(z.object({
     title: z.string(),
     content: z.string(),
@@ -123,12 +134,51 @@ const fileBlockSchema = z.object({
   title: z.string().optional().default(''),
 });
 
-// Grid and Section are recursive — use passthrough for nested blocks
+// Leaf block union — used inside grid cells (no containers allowed here)
+const leafBlockSchema = z.discriminatedUnion('type', [
+  heroBlockSchema,
+  textBlockSchema,
+  headingBlockSchema,
+  imageBlockSchema,
+  dividerBlockSchema,
+  galleryBlockSchema,
+  sliderBlockSchema,
+  videoBlockSchema,
+  youtubeBlockSchema,
+  htmlBlockSchema,
+  accordionBlockSchema,
+  buttonsBlockSchema,
+  featuresBlockSchema,
+  contactFormBlockSchema,
+  fileBlockSchema,
+]);
+
+// Grid: cells contain only leaf blocks (no grid-in-grid, no section-in-grid)
 const gridBlockSchema = z.object({
   type: z.literal('grid'),
-  columns: z.string(),
-  cells: z.array(z.array(z.object({}).passthrough())),
+  columns: z.union([z.string(), z.number()]).transform(String),
+  cells: z.array(z.array(leafBlockSchema)),
 });
+
+// Section children can contain leaf blocks + grid (but not section-in-section)
+const sectionChildSchema = z.discriminatedUnion('type', [
+  heroBlockSchema,
+  textBlockSchema,
+  headingBlockSchema,
+  imageBlockSchema,
+  dividerBlockSchema,
+  galleryBlockSchema,
+  sliderBlockSchema,
+  videoBlockSchema,
+  youtubeBlockSchema,
+  htmlBlockSchema,
+  accordionBlockSchema,
+  buttonsBlockSchema,
+  featuresBlockSchema,
+  contactFormBlockSchema,
+  fileBlockSchema,
+  gridBlockSchema,
+]);
 
 const sectionBlockSchema = z.object({
   type: z.literal('section'),
@@ -138,10 +188,11 @@ const sectionBlockSchema = z.object({
   textAlign: z.string().optional().default(''),
   anchor: z.string().optional().default(''),
   fullWidth: z.boolean().optional().default(false),
-  children: z.array(z.object({}).passthrough()).default([]),
+  children: z.array(sectionChildSchema).default([]),
 });
 
-// Union of all known block types, with fallback for unknown types
+// Top-level block schema: strict discriminated union.
+// Unknown block types will throw a build error — intentional: fix the migrator, not the schema.
 const blockSchema = z.discriminatedUnion('type', [
   heroBlockSchema,
   textBlockSchema,
@@ -160,7 +211,7 @@ const blockSchema = z.discriminatedUnion('type', [
   fileBlockSchema,
   gridBlockSchema,
   sectionBlockSchema,
-]).catch((ctx) => ctx.input as any); // Allow unknown block types to pass through
+]);
 
 // ─── Page Collection ────────────────────────────────────────────────
 
@@ -176,7 +227,7 @@ const pages = defineCollection({
     isHomepage: z.boolean().optional().default(false),
     template: z.number().optional(),
     publishedAt: z.string().optional(),
-    blocks: z.array(z.any()).default([]),
+    blocks: z.array(blockSchema).default([]),
   }),
 });
 
@@ -235,6 +286,8 @@ const siteConfig = defineCollection({
     maxLayoutWidth: z.number().optional().default(1200),
     analyticsId: z.string().optional().default(''),
     analyticsType: z.string().optional().default('analytics'),
+    trackingCodeHead: z.string().optional().default(''),
+    trackingCodeBody: z.string().optional().default(''),
   }),
 });
 
