@@ -29,3 +29,9 @@ public/assets/
 
 # OS
 Thumbs.db
+
+# Client input data — SQL dumps and asset archives must NOT be committed
+data/*.sql
+data/*.sql.gz
+data/*.zip
+data/assets/
