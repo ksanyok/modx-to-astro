@@ -22,7 +22,8 @@ modx-to-astro/
 │   ├── public/assets/          # Media files (copied from MODX)
 │   └── astro.config.mjs
 ├── scripts/
-│   └── deploy.sh               # Zero-downtime deploy (rsync + atomic swap)
+│   ├── deploy.sh               # Zero-downtime deploy (symlink releases, dry-run, rollback)
+│   └── qc.sh                  # QC: MODX tag check, broken images, UTF-8 validation
 ├── docs/
 │   └── migration-guide.md      # Full team documentation
 ├── .gitlab-ci.yml              # CI/CD: migrate → test → build → deploy + rollback
@@ -58,17 +59,19 @@ cp .env.example .env
 ### 3. One-command pipeline
 
 ```bash
-make all    # migrate → build → deploy (zero-downtime)
+make all    # migrate → qc → build → deploy → healthcheck
 ```
 
 Or step by step:
 
 ```bash
-make migrate    # SQL + assets → JSON content
-make build      # Astro static build
-make preview    # Check locally at localhost:4321
-make deploy     # Zero-downtime rsync deploy
-make rollback   # Instant rollback if needed
+make migrate     # SQL + assets → JSON content
+make qc          # Quality checks (MODX tags, broken images, UTF-8)
+make build       # Astro static build
+make preview     # Check locally at localhost:4321
+make deploy      # Zero-downtime deploy (symlink, atomic)
+make rollback    # Instant rollback to previous release (atomic)
+make healthcheck # Verify site returns HTTP 200
 ```
 
 ---
@@ -259,23 +262,34 @@ The theme uses CSS custom properties (variables) for all colors. These have sens
 ### Local: Makefile
 
 ```bash
-make migrate    # SQL → JSON
-make build      # Astro build
-make deploy     # rsync + atomic swap (zero-downtime)
-make rollback   # Instant rollback to previous release
-make all        # Full pipeline: migrate → build → deploy
-make clean      # Remove all generated files
-make test       # Run 48 CLI unit tests
+make migrate     # SQL → JSON
+make qc          # QC: MODX tags, broken images, UTF-8
+make build       # Astro build
+make deploy      # Zero-downtime deploy (symlink, atomic, keep-N releases)
+make rollback    # Instant rollback to previous release (atomic)
+make healthcheck # Verify live site returns HTTP 200
+make all         # Full pipeline: migrate → qc → build → deploy → healthcheck
+make clean       # Remove all generated files
+make test        # Run 48 CLI unit tests
 ```
 
 ### Local: deploy.sh script
 
 ```bash
-# Deploy with zero-downtime
-./scripts/deploy.sh user@server /var/www/vhosts/site.ch/httpdocs
+# Deploy with zero-downtime (reads .env)
+bash scripts/deploy.sh
 
-# Rollback
-./scripts/deploy.sh --rollback
+# Dry-run — preview what would be transferred, no actual swap:
+bash scripts/deploy.sh --dry-run
+
+# Rollback one release (atomic symlink swap):
+bash scripts/deploy.sh --rollback
+
+# Rollback two releases:
+bash scripts/deploy.sh --rollback 2
+
+# List all releases on server:
+bash scripts/deploy.sh --list
 ```
 
 ### GitLab CI/CD (`.gitlab-ci.yml`)
@@ -287,8 +301,8 @@ Four stages + rollback:
 | `migrate` | SQL + assets → JSON content | auto on push to main |
 | `test` | 48 unit tests (Jest) | auto |
 | `build` | `npx astro build` → static HTML | auto |
-| `deploy` | rsync + atomic swap | manual (button) |
-| `rollback` | Restore previous release | manual (button) |
+| `deploy` | rsync → new release dir + atomic symlink swap | manual (button) |
+| `rollback` | Restore previous release (atomic symlink) | manual (button) |
 
 **Required CI/CD Variables:**
 
@@ -301,13 +315,24 @@ Four stages + rollback:
 
 ### Zero-downtime deploy strategy
 
+Symlink-based releases — truly atomic, no crash gap:
+
 ```
-1. rsync dist/ → server:path-staging/
-2. mv path → path-prev          (backup)
-3. mv path-staging → path       (go live)
+Server layout:
+/var/www/vhosts/site.ch/
+├── releases/
+│   ├── 20260302_120000/    (kept for rollback)
+│   └── 20260302_130000/    (current live)
+└── httpdocs -> releases/20260302_130000   (SYMLINK)
+
+Deploy steps:
+1. rsync dist/ → releases/TIMESTAMP/   (isolated dir)
+2. ln -sfn releases/TIMESTAMP httpdocs  (atomic — single syscall)
+3. prune old releases                   (keep KEEP_RELEASES)
+4. curl HEALTH_URL → expect HTTP 200
 ```
 
-No moment of downtime. Rollback = reverse swap (instant).
+Rollback = `ln -sfn previous_release httpdocs` — also atomic, no gap.
 
 ---
 

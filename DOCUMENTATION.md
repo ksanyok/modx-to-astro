@@ -658,18 +658,19 @@ The deploy script never overwrites these server-side files:
 
 ### Overview
 
-The `.gitlab-ci.yml` defines a 4-stage pipeline with an additional rollback job:
+The `.gitlab-ci.yml` defines a 5-stage pipeline with an additional rollback job:
 
 ```
-migrate → test → build → deploy (manual) → rollback (manual)
+migrate → qc → test → build → deploy (manual) → rollback (manual)
 ```
 
 | Stage | Image | Action |
 |-------|-------|--------|
 | **migrate** | `node:20-alpine` | Run CLI: SQL + assets → JSON content |
+| **qc** | `node:20-alpine` | QC checks: MODX tags, broken images, UTF-8 |
 | **test** | `node:20-alpine` | Run Jest unit tests |
 | **build** | `node:20-alpine` | Run `npx astro build` |
-| **deploy** | `alpine` | rsync to new release dir + atomic symlink swap |
+| **deploy** | `alpine` | rsync to new release dir + atomic symlink swap + health check |
 | **rollback** | `alpine` | Restore previous release (atomic symlink) |
 
 ### How GitLab CI Works Without Direct Access
@@ -707,6 +708,9 @@ Optional variables (can also be set in `.gitlab-ci.yml`):
 | `SITE_DOMAIN` | `example.ch` | Production domain for sitemap/canonical URLs |
 | `SQL_PATH` | `data/dump.sql` | Path to SQL dump in repo |
 | `ASSETS_PATH` | `data/assets` | Path to assets in repo |
+| `DEPLOY_PORT` | `22` | SSH port for rsync/ssh |
+| `KEEP_RELEASES` | `3` | Number of releases to keep on server |
+| `HEALTH_URL` | `https://$SITE_DOMAIN` | URL verified with HTTP 200 after deploy |
 
 #### Step 3: SSH Key Setup
 
