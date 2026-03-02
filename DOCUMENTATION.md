@@ -46,7 +46,8 @@ The result is a fast, secure, zero-maintenance static website that can be hosted
 | **Idempotent** | Re-running the migration produces identical output |
 | **Theme extraction** | Colors, fonts, logo, navigation from ClientConfig + SQL |
 | **Keystatic CMS** | Optional visual editor for post-migration content edits |
-| **Zero-downtime deploy** | rsync + atomic directory swap on production server |
+| **Zero-downtime deploy** | Symlink-based releases (`ln -sfn`) + configurable keep-N + health check |
+| **QC automation** | `make qc` checks MODX tags, broken images, UTF-8 validity |
 | **Batch support** | Migrate/build/deploy hundreds of sites in one command |
 | **48 unit tests** | Full test coverage for CLI migration logic |
 | **GitLab CI/CD** | 4-stage pipeline with one-click rollback |
@@ -230,7 +231,8 @@ modx-to-astro/
 │   └── dist/                 # Built output (git-ignored)
 │
 ├── scripts/
-│   └── deploy.sh             # Zero-downtime deploy script
+│   ├── deploy.sh             # Symlink-based deploy: atomic, dry-run, keep-N, rollback
+│   └── qc.sh                 # QC: MODX tag check, broken images, UTF-8 validation
 │
 └── data/                     # Site data (git-ignored or per-fork)
     ├── dump.sql              # MODX SQL dump
@@ -550,35 +552,77 @@ KEYSTATIC=true npm run dev
 
 ### Zero-Downtime Deploy Strategy
 
-The deployment uses rsync + atomic directory swap:
+The deployment uses **timestamped releases + atomic symlink swap** (`ln -sfn`):
 
 ```
-1. rsync dist/ → server:/path-staging/     (upload new files)
-2. mv /path → /path-prev                   (backup current)
-3. mv /path-staging → /path                (go live — atomic)
+Server layout after first deploy:
+/var/www/vhosts/example.ch/
+├── releases/
+│   ├── 20260302_120000/    ← older release (kept for rollback)
+│   └── 20260302_130000/    ← newest release (current live)
+└── httpdocs -> releases/20260302_130000   ← SYMLINK (webroot)
+
+Deploy steps:
+1. rsync dist/ → releases/TIMESTAMP/   (upload to isolated dir)
+2. ln -sfn releases/TIMESTAMP httpdocs  (atomic symlink swap)
+3. prune excess releases                (keep last N)
+4. curl health check                    (verify HTTP 200)
 ```
 
 This ensures:
-- **Zero downtime** — the swap is instant (single `mv` operation)
-- **Instant rollback** — previous release is kept as `-prev`
-- **Safe** — if rsync fails, the live site is unaffected
+- **Truly atomic** — `ln -sfn` replaces the symlink in one kernel syscall; no gap
+- **Safe rollback** — also atomic: `ln -sfn previous_release httpdocs`
+- **Keep N releases** — configurable history for multiple rollback steps
+- **No crash gap** — if rsync or the server crashes mid-transfer, the live symlink is untouched
+- **Health verified** — curl checks the live URL returns HTTP 200 after every deploy
 
 ### Manual Deploy
 
 ```bash
-# Ensure .env has DEPLOY_HOST and DEPLOY_PATH set
+# Ensure .env has DEPLOY_HOST, DEPLOY_PATH, etc.
 make deploy
 
 # Or directly:
 bash scripts/deploy.sh user@server /var/www/vhosts/example.ch/httpdocs
+
+# Dry-run (show plan without making changes):
+bash scripts/deploy.sh --dry-run
+
+# List releases on server:
+bash scripts/deploy.sh --list
 ```
 
 ### Rollback
 
 ```bash
+# Roll back one release (atomic):
 make rollback
 # Or:
 bash scripts/deploy.sh --rollback
+
+# Roll back two releases:
+bash scripts/deploy.sh --rollback 2
+```
+
+### QC Checks
+
+Run automated quality-control on migrated content before building:
+
+```bash
+make qc
+
+# Checks performed:
+#  1. Remaining MODX template tags ({{ [[ {[) in JSON content
+#  2. Broken image references (paths in JSON not found in assets/)
+#  3. UTF-8 + JSON format validity of all content files
+```
+
+### Health Check
+
+```bash
+make healthcheck
+# Uses HEALTH_URL from .env; expects HTTP 200.
+# Also runs automatically as the last step of 'make all'.
 ```
 
 ### Deploy Configuration (.env)
@@ -587,13 +631,22 @@ bash scripts/deploy.sh --rollback
 # SSH user@host for rsync
 DEPLOY_HOST=user@server.example.com
 
-# Remote document root path
+# Remote document root path (becomes a symlink after first deploy)
 DEPLOY_PATH=/var/www/vhosts/example.ch/httpdocs
+
+# SSH port (default: 22)
+DEPLOY_PORT=22
+
+# Number of releases to keep for rollback (default: 3)
+KEEP_RELEASES=3
+
+# URL verified with HTTP GET after every deploy (must return 200)
+HEALTH_URL=https://example.ch
 ```
 
 ### Preserved Files
 
-The deploy script preserves these files on the server (never overwritten):
+The deploy script never overwrites these server-side files:
 - `.well-known/` (SSL verification, etc.)
 - `cgi-bin/`
 - `.htaccess` (Apache rules)
@@ -616,8 +669,8 @@ migrate → test → build → deploy (manual) → rollback (manual)
 | **migrate** | `node:20-alpine` | Run CLI: SQL + assets → JSON content |
 | **test** | `node:20-alpine` | Run Jest unit tests |
 | **build** | `node:20-alpine` | Run `npx astro build` |
-| **deploy** | `alpine` | rsync to server + atomic swap |
-| **rollback** | `alpine` | Restore previous release |
+| **deploy** | `alpine` | rsync to new release dir + atomic symlink swap |
+| **rollback** | `alpine` | Restore previous release (atomic symlink) |
 
 ### How GitLab CI Works Without Direct Access
 

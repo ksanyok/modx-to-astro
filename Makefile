@@ -22,11 +22,14 @@
 # ═══════════════════════════════════════════════════════════════
 
 # Defaults
-SQL_PATH     ?= data/dump.sql
-ASSETS_PATH  ?= data/assets
-SITE_DOMAIN  ?=
-DEPLOY_HOST  ?=
-DEPLOY_PATH  ?=
+SQL_PATH       ?= data/dump.sql
+ASSETS_PATH    ?= data/assets
+SITE_DOMAIN    ?=
+DEPLOY_HOST    ?=
+DEPLOY_PATH    ?=
+DEPLOY_PORT    ?= 22
+KEEP_RELEASES  ?= 3
+HEALTH_URL     ?= $(if $(SITE_DOMAIN),https://$(SITE_DOMAIN),)
 
 # Batch defaults
 SITES_DIR    ?= ./sites
@@ -45,7 +48,7 @@ DIST_DIR     := $(THEME_DIR)/dist
 
 SITE_FLAG    := $(if $(SITE_DOMAIN),--site https://$(SITE_DOMAIN),)
 
-.PHONY: install migrate build preview deploy rollback test clean all help batch batch-deploy pipeline
+.PHONY: install migrate qc build preview deploy rollback healthcheck test clean all help batch batch-deploy pipeline
 
 # ── Help (default) ──────────────────────────────────────────
 
@@ -54,15 +57,17 @@ help:
 	@echo "  MODX → Astro Migration Pipeline"
 	@echo "  ───────────────────────────────"
 	@echo ""
-	@echo "  make install     Install CLI + theme dependencies"
-	@echo "  make migrate     Run migration (SQL → JSON)"
-	@echo "  make build       Build Astro static site"
-	@echo "  make preview     Preview built site locally"
-	@echo "  make deploy      Deploy to server (zero-downtime)"
-	@echo "  make rollback    Restore previous release"
-	@echo "  make test        Run CLI unit tests"
-	@echo "  make all         Full pipeline: migrate → build → deploy"
-	@echo "  make clean       Remove generated content & dist"
+	@echo "  make install      Install CLI + theme dependencies"
+	@echo "  make migrate      Run migration (SQL → JSON)"
+	@echo "  make qc           Quality-control checks on migrated content"
+	@echo "  make build        Build Astro static site"
+	@echo "  make preview      Preview built site locally"
+	@echo "  make deploy       Deploy to server (symlink, zero-downtime)"
+	@echo "  make rollback     Restore previous release (atomic symlink)"
+	@echo "  make healthcheck  Verify deployed site returns HTTP 200"
+	@echo "  make test         Run CLI unit tests"
+	@echo "  make all          Full pipeline: migrate → qc → build → deploy → healthcheck"
+	@echo "  make clean        Remove generated content & dist"
 	@echo ""
 	@echo "  ── Batch (200+ sites) ──────────────────"
 	@echo "  make batch       Batch migrate all sites in SITES_DIR"
@@ -109,13 +114,29 @@ preview:
 deploy:
 	@test -n "$(DEPLOY_HOST)" || (echo "Error: DEPLOY_HOST not set. See .env"; exit 1)
 	@test -n "$(DEPLOY_PATH)" || (echo "Error: DEPLOY_PATH not set. See .env"; exit 1)
-	bash scripts/deploy.sh "$(DEPLOY_HOST)" "$(DEPLOY_PATH)"
+	DEPLOY_PORT=$(DEPLOY_PORT) KEEP_RELEASES=$(KEEP_RELEASES) HEALTH_URL=$(HEALTH_URL) \
+	  bash scripts/deploy.sh "$(DEPLOY_HOST)" "$(DEPLOY_PATH)"
 
 # ── Rollback ────────────────────────────────────────────────
 
 rollback:
 	@test -n "$(DEPLOY_HOST)" || (echo "Error: DEPLOY_HOST not set. See .env"; exit 1)
-	bash scripts/deploy.sh --rollback
+	DEPLOY_PORT=$(DEPLOY_PORT) bash scripts/deploy.sh --rollback
+
+# -- QC ----------------------------------------------------------------
+
+qc:
+	@echo "━━━ QC checks ━━━"
+	bash scripts/qc.sh
+
+# -- Health check -------------------------------------------------------
+
+healthcheck:
+	@test -n "$(HEALTH_URL)" || (echo "Error: HEALTH_URL not set. See .env"; exit 1)
+	@echo "━━━ Health check: $(HEALTH_URL) ━━━"
+	@code=$$(curl -s --max-time 15 -o /dev/null -w '%{http_code}' "$(HEALTH_URL)") && \
+	  echo "  HTTP $$code" && \
+	  [ "$$code" = "200" ] || (echo "  ERROR: expected 200"; exit 1)
 
 # ── Test ────────────────────────────────────────────────────
 
@@ -134,7 +155,7 @@ clean:
 
 # ── Full pipeline ───────────────────────────────────────────
 
-all: migrate build deploy
+all: migrate qc build deploy healthcheck
 
 # ── Batch targets (200+ sites) ──────────────────────────────
 
@@ -169,10 +190,14 @@ pipeline:
 	$(MAKE) -s clean && \
 	echo "→ Migrating..." && \
 	$(MAKE) -s migrate && \
+	echo "→ QC checks..." && \
+	$(MAKE) -s qc && \
 	echo "→ Building..." && \
 	$(MAKE) -s build && \
 	echo "→ Deploying..." && \
 	$(MAKE) -s deploy && \
+	echo "→ Health check..." && \
+	$(MAKE) -s healthcheck && \
 	END=$$(date +%s) && \
 	echo "" && \
 	echo "═══════════════════════════════════" && \

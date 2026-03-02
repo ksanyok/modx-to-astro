@@ -4,7 +4,7 @@
 # b7264r9s | ksanyok | buyreadysite.com
 # ═══════════════════════════════════════════════════════════════
 #
-# Runs the complete pipeline (clean → migrate → build → deploy)
+# Runs the complete pipeline (clean → migrate → qc → build → deploy)
 # with per-step timing. Useful for quick manual deploys.
 #
 # Usage:
@@ -52,7 +52,7 @@ echo "╚═══════════════════════�
 echo ""
 
 # ── Step 1: Clean ──
-echo "→ [1/4] Cleaning..."
+echo "→ [1/5] Cleaning..."
 STEP_START=$(date +%s)
 rm -rf "${THEME_DIR}/src/content/pages/"*
 rm -f  "${THEME_DIR}/src/content/site-config.json"
@@ -63,7 +63,7 @@ STEP_END=$(date +%s)
 echo "  ✓ Clean: $((STEP_END - STEP_START))s"
 
 # ── Step 2: Migrate ──
-echo "→ [2/4] Migrating..."
+echo "→ [2/5] Migrating..."
 STEP_START=$(date +%s)
 cd "$CLI_DIR"
 node migrate.js \
@@ -76,8 +76,17 @@ STEP_END=$(date +%s)
 MIGRATE_TIME=$((STEP_END - STEP_START))
 echo "  ✓ Migrate: ${MIGRATE_TIME}s"
 
-# ── Step 3: Build ──
-echo "→ [3/4] Building..."
+# ── Step 3: QC checks ──
+echo "→ [3/5] Running QC checks..."
+STEP_START=$(date +%s)
+cd "$ROOT_DIR"
+bash scripts/qc.sh || { echo "  QC checks failed — aborting pipeline."; exit 1; }
+STEP_END=$(date +%s)
+QC_TIME=$((STEP_END - STEP_START))
+echo "  ✓ QC: ${QC_TIME}s"
+
+# ── Step 4: Build ──
+echo "→ [4/5] Building..."
 STEP_START=$(date +%s)
 cd "$THEME_DIR"
 npx astro build
@@ -93,7 +102,7 @@ if [[ "$SKIP_DEPLOY" == "false" ]]; then
   DEPLOY_HOST="${DEPLOY_HOST:-}"
   DEPLOY_PATH="${DEPLOY_PATH:-}"
   if [[ -n "$DEPLOY_HOST" && -n "$DEPLOY_PATH" ]]; then
-    echo "→ [4/4] Deploying to ${DEPLOY_HOST}..."
+    echo "→ [5/5] Deploying to ${DEPLOY_HOST}..."
     STEP_START=$(date +%s)
     cd "$ROOT_DIR"
     bash scripts/deploy.sh "$DEPLOY_HOST" "$DEPLOY_PATH"
@@ -101,10 +110,10 @@ if [[ "$SKIP_DEPLOY" == "false" ]]; then
     DEPLOY_TIME=$((STEP_END - STEP_START))
     echo "  ✓ Deploy: ${DEPLOY_TIME}s"
   else
-    echo "→ [4/4] Skipping deploy (DEPLOY_HOST/DEPLOY_PATH not set)"
+    echo "→ [5/5] Skipping deploy (DEPLOY_HOST/DEPLOY_PATH not set)"
   fi
 else
-  echo "→ [4/4] Skipping deploy (--no-deploy)"
+  echo "→ [5/5] Skipping deploy (--no-deploy)"
 fi
 
 TOTAL_END=$(date +%s)
@@ -115,6 +124,7 @@ echo "╔═══════════════════════�
 echo "║  ✓ Pipeline Complete                                    ║"
 echo "╠══════════════════════════════════════════════════════════╣"
 echo "║  Migrate:  ${MIGRATE_TIME}s"
+echo "║  QC:       ${QC_TIME}s"
 echo "║  Build:    ${BUILD_TIME}s"
 echo "║  Deploy:   ${DEPLOY_TIME}s"
 echo "║  ──────────────────"
