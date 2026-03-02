@@ -8,16 +8,20 @@ interface Props {
     alt?: string;
     width?: number;
     height?: number;
+    /** When set the tile links to this URL instead of opening lightbox */
+    link?: string;
   }>;
-  columns?: number;
+  columns?: number | string;
 }
 
 const { images = [], columns = 3 } = Astro.props;
+const colNum = typeof columns === 'string' ? parseInt(columns) || 3 : columns;
 
 const colClasses: Record<number, string> = {
+  1: 'grid-cols-1',
   2: 'grid-cols-1 sm:grid-cols-2',
   3: 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
-  4: 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4',
+  4: 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-4',
 };
 
 // Resolve all images at build time
@@ -27,35 +31,51 @@ const resolvedImages = await Promise.all(
 ---
 {images.length > 0 && (
   <Fragment>
-    <div class:list={['grid gap-3 sm:gap-4', colClasses[columns] || colClasses[3]]}>
+    <div class:list={['grid gap-3 sm:gap-4', colClasses[colNum] || colClasses[3]]}>
       {images.map((img, idx) => (
-        <button
-          type="button"
-          class="group overflow-hidden rounded-xl bg-(--color-bg-section) cursor-pointer border-0 p-0 focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2"
-          data-lightbox-trigger
-          data-index={idx}
-          aria-label={img.alt ? `Bild vergrößern: ${img.alt}` : 'Bild vergrößern'}
-        >
-          {resolvedImages[idx] ? (
-            <Image
-              src={resolvedImages[idx]!}
-              alt={img.alt || ''}
-              widths={[360, 720, 1080]}
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              loading="lazy"
-              decoding="async"
-              class="w-full h-56 sm:h-64 object-cover transition-transform duration-600 ease-out group-hover:scale-105"
-            />
-          ) : (
-            <img
-              src={img.src}
-              alt={img.alt || ''}
-              loading="lazy"
-              decoding="async"
-              class="w-full h-56 sm:h-64 object-cover transition-transform duration-600 ease-out group-hover:scale-105"
-            />
-          )}
-        </button>
+        img.link ? (
+          <a
+            href={img.link}
+            class="group overflow-hidden rounded-xl bg-(--color-bg-section) block focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2"
+            aria-label={img.alt || img.link}
+          >
+            {resolvedImages[idx] ? (
+              <Image
+                src={resolvedImages[idx]!}
+                alt={img.alt || ''}
+                widths={[360, 720, 1080]}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                loading="lazy"
+                decoding="async"
+                class="w-full h-56 sm:h-64 object-cover transition-transform duration-600 ease-out group-hover:scale-105"
+              />
+            ) : (
+              <img src={img.src} alt={img.alt || ''} loading="lazy" decoding="async" class="w-full h-56 sm:h-64 object-cover transition-transform duration-600 ease-out group-hover:scale-105" />
+            )}
+          </a>
+        ) : (
+          <button
+            type="button"
+            class="group overflow-hidden rounded-xl bg-(--color-bg-section) cursor-pointer border-0 p-0 focus-visible:ring-2 focus-visible:ring-(--color-accent) focus-visible:ring-offset-2"
+            data-lightbox-trigger
+            data-index={idx}
+            aria-label={img.alt ? `Bild vergrößern: ${img.alt}` : 'Bild vergrößern'}
+          >
+            {resolvedImages[idx] ? (
+              <Image
+                src={resolvedImages[idx]!}
+                alt={img.alt || ''}
+                widths={[360, 720, 1080]}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                loading="lazy"
+                decoding="async"
+                class="w-full h-56 sm:h-64 object-cover transition-transform duration-600 ease-out group-hover:scale-105"
+              />
+            ) : (
+              <img src={img.src} alt={img.alt || ''} loading="lazy" decoding="async" class="w-full h-56 sm:h-64 object-cover transition-transform duration-600 ease-out group-hover:scale-105" />
+            )}
+          </button>
+        )
       ))}
     </div>
 

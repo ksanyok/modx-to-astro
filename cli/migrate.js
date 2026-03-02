@@ -473,6 +473,106 @@ function fixHtmlRelativePaths(html) {
 }
 
 /**
+ * Extract all images from an HTML string, including per-image link if the image
+ * is wrapped in an <a href="..."> tag.  Returns array of { src, alt, link }.
+ */
+function extractImagesFromHtmlWithLinks(html) {
+  if (!html) return [];
+  const images = [];
+  // Match <a href="URL"><img ...></a> patterns
+  const linkedRe = /<a\s+[^>]*href="([^"]*)"[^>]*>\s*<img\b([^>]*)>[^<]*(?:<[^/][^>]*>[^<]*)*?(?:<[^>]*>[^<]*)*?\s*<\/a>/gi;
+  let m;
+  while ((m = linkedRe.exec(html)) !== null) {
+    const href = m[1];
+    const attrs = m[2];
+    const srcM = attrs.match(/\bsrc="([^"]*)"/i);
+    const altM = attrs.match(/\balt="([^"]*)"/i);
+    if (srcM && srcM[1]) {
+      images.push({ src: resolveImagePath(srcM[1]), alt: altM ? altM[1] : '', link: href || '' });
+    }
+  }
+  // Match bare <img> tags (not inside <a>)
+  if (images.length === 0) {
+    const imgRe = /<img\b([^>]*)>/gi;
+    while ((m = imgRe.exec(html)) !== null) {
+      const attrs = m[1];
+      const srcM = attrs.match(/\bsrc="([^"]*)"/i);
+      const altM = attrs.match(/\balt="([^"]*)"/i);
+      if (srcM && srcM[1]) {
+        images.push({ src: resolveImagePath(srcM[1]), alt: altM ? altM[1] : '', link: '' });
+      }
+    }
+  }
+  return images;
+}
+
+/**
+ * Extract all images from an HTML string.
+ * Returns array of { src, alt } for every <img> found (handles <a><img></a>, <figure>, <p> wrappers).
+ * Used to detect and convert images-only richtext blocks into gallery blocks.
+ */
+function extractImagesFromHtml(html) {
+  if (!html) return [];
+  const images = [];
+  const imgRe = /<img\b[^>]*>/gi;
+  let m;
+  while ((m = imgRe.exec(html)) !== null) {
+    const tag = m[0];
+    const srcM = tag.match(/\bsrc="([^"]*)"/i);
+    const altM = tag.match(/\balt="([^"]*)"/i);
+    if (srcM && srcM[1]) {
+      images.push({ src: resolveImagePath(srcM[1]), alt: altM ? altM[1] : '' });
+    }
+  }
+  return images;
+}
+
+/**
+ * Returns true when an HTML string contains ONLY images (no prose text).
+ * Strips all <img> tags + their link/figure/paragraph wrappers, then checks that
+ * the remaining text is empty (whitespace / punctuation only, no real words).
+ */
+function isImagesOnlyHtml(html) {
+  if (!html) return false;
+  // Remove img tags and their common wrappers
+  let cleaned = html
+    .replace(/<a\b[^>]*>\s*<img\b[^>]*>\s*<\/a>/gi, '')
+    .replace(/<figure\b[^>]*>[\s\S]*?<\/figure>/gi, '')
+    .replace(/<img\b[^>]*>/gi, '')
+    .replace(/<\/?(?:p|div|span|br|figure|figcaption|section|article|ul|ol|li|strong|em|b|i)[^>]*>/gi, '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  // If the remainder has real word characters it's not images-only
+  return cleaned.length === 0 || !/[a-zA-ZÀ-ÿа-яёА-ЯЁ0-9]{3,}/.test(cleaned);
+}
+
+/**
+ * Extract a single linked image from richtext — pattern: <a href="URL"><img ...></a>
+ * Returns { src, alt, link } or null.  Used to convert single-cell linked-image
+ * blocks (e.g. diamond navigation tiles) into image blocks with a link prop.
+ */
+function extractLinkedImage(html) {
+  if (!html) return null;
+  // Must start with <a...><img...></a> optionally wrapped in <p> and followed by optional label text
+  const m = html.match(/^\s*(?:<p[^>]*>)?\s*<a\s+[^>]*href="([^"]*)"[^>]*>\s*<img\b([^>]*)>\s*<\/a>/i);
+  if (!m) return null;
+  const href = m[1];
+  const attrs = m[2];
+  const srcM = attrs.match(/\bsrc="([^"]*)"/i);
+  const altM = attrs.match(/\balt="([^"]*)"/i);
+  if (!srcM) return null;
+  // Extract optional text label that follows the image
+  const rest = html.replace(/^\s*(?:<p[^>]*>)?\s*<a\s+[^>]*>[\s\S]*?<\/a>/i, '').replace(/<[^>]+>/g, '').trim();
+  return {
+    src: resolveImagePath(srcM[1]),
+    alt: altM ? altM[1] : rest || '',
+    link: href,
+    label: rest,
+  };
+}
+
+/**
  * Extract the primary linked URL from service-card richtext HTML.
  * MODX ContentBlocks service cards wrap their thumbnail image in an <a href="..."> link.
  * We extract this link so Astro can render a universal "mehr" CTA button below the card.
@@ -648,6 +748,42 @@ function processLayoutBlock(layoutBlock, resourceMap) {
     // Layout 8: 30|70
     case 8:
       return processTwoColumnLayout(content, settings, sectionSettings, '30-70', resourceMap);
+
+    // Layout 7: 70|30
+    case 7:
+      return processTwoColumnLayout(content, settings, sectionSettings, '70-30', resourceMap);
+
+    // Layout 10: 80|20
+    case 10:
+      return processTwoColumnLayout(content, settings, sectionSettings, '70-30', resourceMap);
+
+    // Layout 11: 20|80
+    case 11:
+      return processTwoColumnLayout(content, settings, sectionSettings, '30-70', resourceMap);
+
+    // Layout 12: 75|25
+    case 12:
+      return processTwoColumnLayout(content, settings, sectionSettings, '70-30', resourceMap);
+
+    // Layout 13: 25|75
+    case 13:
+      return processTwoColumnLayout(content, settings, sectionSettings, '30-70', resourceMap);
+
+    // Layout 15: 33|66
+    case 15:
+      return processTwoColumnLayout(content, settings, sectionSettings, '30-70', resourceMap);
+
+    // Layout 16: 66|33
+    case 16:
+      return processTwoColumnLayout(content, settings, sectionSettings, '70-30', resourceMap);
+
+    // Layout 17: Full-width section (alias for 1-column)
+    case 17:
+      return processOneColumnLayout(content, settings, sectionSettings, resourceMap);
+
+    // Layout 21: Image/media gallery
+    case 21:
+      return processOneColumnLayout(content, settings, sectionSettings, resourceMap);
 
     // Layout 18: 25|25|25|25
     case 18:
@@ -917,6 +1053,30 @@ function processContentFields(fields, resourceMap) {
 
       case 3: { // Richtext / Textarea
         const richContent = fixHtmlRelativePaths(resolveResourceLinks(field.value || '', resourceMap));
+
+        // ── Images-only detection ──────────────────────────────────────────────
+        // If the entire richtext content is nothing but <img> tags (wrapped in
+        // anchors, figures, or paragraphs), convert to a gallery block so images
+        // render as a proper grid rather than raw inline HTML.
+        const extractedImages = extractImagesFromHtml(richContent);
+        if (extractedImages.length >= 2 && isImagesOnlyHtml(richContent)) {
+          // Determine if any image has a link → linked-image gallery (e.g. nav tiles)
+          const linkedImages = extractImagesFromHtmlWithLinks(richContent);
+          const cols = linkedImages.length <= 2 ? 2 : linkedImages.length <= 4 ? linkedImages.length : 3;
+          blocks.push({ type: 'gallery', columns: cols, images: linkedImages });
+          break;
+        }
+
+        // ── Single linked image detection ─────────────────────────────────────
+        // Pattern: entire content is <a href="..."><img...></a> optionally with
+        // a text label — e.g. diamond navigation tiles in KP / pizzalondon.
+        const linkedImg = extractLinkedImage(richContent);
+        if (linkedImg) {
+          blocks.push({ type: 'image', src: linkedImg.src, alt: linkedImg.alt, link: linkedImg.link });
+          break;
+        }
+
+        // ── Normal richtext ───────────────────────────────────────────────────
         // Primary: link wrapped around an image (KP Services style)
         // Fallback: match H4 heading text to a page slug (AZOTEA style — links from PHP template)
         const cardLink = extractCardLink(richContent) || matchCardLinkByHeading(richContent, resourceMap);
@@ -940,6 +1100,12 @@ function processContentFields(fields, resourceMap) {
           cover: field.settings?.cover === 'img-cover',
           borderless: field.settings?.imgborderless === 'img-borderless',
           position: field.settings?.obPos || '',
+          // If the image field has a link (linkType 'resource' or external) include it
+          link: field.link
+            ? (field.link.linkType === 'resource'
+                ? resolveResourceLinks(`[[~${field.link.link}]]`, resourceMap)
+                : (field.link.link || ''))
+            : '',
         });
         break;
 

@@ -68,6 +68,8 @@ const galleryBlockSchema = z.object({
     src: z.string(),
     alt: z.string().optional().default(''),
     title: z.string().optional().default(''),
+    /** When set the gallery tile links to this URL instead of opening the lightbox */
+    link: z.string().optional().default(''),
   })).default([]),
 });
 

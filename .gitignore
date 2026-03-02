@@ -35,3 +35,6 @@ data/*.sql
 data/*.sql.gz
 data/*.zip
 data/assets/
+
+# Local notes — not for repo
+investor-reply-m2.txt

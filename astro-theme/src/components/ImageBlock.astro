@@ -12,6 +12,8 @@ interface Props {
   position?: string;
   loading?: 'lazy' | 'eager';
   fetchpriority?: 'high' | 'low' | 'auto';
+  /** Optional URL — wraps the image in an <a> tag (e.g. linked navigation tiles) */
+  link?: string;
 }
 
 const {
@@ -22,6 +24,7 @@ const {
   position = '',
   loading = 'lazy',
   fetchpriority = 'auto',
+  link = '',
 } = Astro.props;
 
 const positionMap: Record<string, string> = {
@@ -38,8 +41,27 @@ const imgClass = [
   borderless ? '' : 'rounded-xl',
   positionMap[position] || '',
 ].filter(Boolean).join(' ');
+
+const linkClass = link ? 'block group hover:opacity-90 transition-opacity' : '';
 ---
-{resolvedImage ? (
+{link ? (
+  <a href={link} class={linkClass}>
+    {resolvedImage ? (
+      <Image
+        src={resolvedImage}
+        alt={alt}
+        widths={[400, 800, 1200]}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 800px"
+        loading={loading}
+        decoding="async"
+        fetchpriority={fetchpriority}
+        class={imgClass}
+      />
+    ) : src ? (
+      <img src={src} alt={alt} loading={loading} decoding="async" class={imgClass} />
+    ) : null}
+  </a>
+) : resolvedImage ? (
   <Image
     src={resolvedImage}
     alt={alt}
@@ -51,12 +73,5 @@ const imgClass = [
     class={imgClass}
   />
 ) : src ? (
-  <img
-    src={src}
-    alt={alt}
-    loading={loading}
-    decoding="async"
-    fetchpriority={fetchpriority}
-    class={imgClass}
-  />
+  <img src={src} alt={alt} loading={loading} decoding="async" class={imgClass} />
 ) : null}
