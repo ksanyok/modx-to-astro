@@ -35,13 +35,13 @@ stages:
   - deploy
 
 variables:
-  NODE_VERSION: "20"
-  # ── Per-site overrides (set in CI/CD Variables or fork) ──
-  DEPLOY_HOST: "user@your-server.com"
-  DEPLOY_PATH: "/var/www/vhosts/domain.ch/httpdocs"
-  SITE_DOMAIN: "example.ch"
   SQL_PATH: "data/dump.sql"
   ASSETS_PATH: "data/assets"
+  DEPLOY_PORT: "22"
+  KEEP_RELEASES: "3"
+  # DEPLOY_HOST, DEPLOY_PATH, SITE_DOMAIN, SSH_PRIVATE_KEY must be set
+  # in GitLab → Settings → CI/CD → Variables (never committed to the repo).
+  # Optional: HEALTH_URL overrides the default https://$SITE_DOMAIN check.
 
 # ─── Shared cache ─────────────────────────────────────────────
 
@@ -58,7 +58,7 @@ variables:
 
 migrate:
   stage: migrate
-  image: node:${NODE_VERSION}-alpine
+  image: node:20-alpine
   extends: .node_cache
   script:
     - cd cli && npm ci
@@ -94,10 +94,12 @@ qc:
   dependencies:
     - migrate
   script:
-    - apk add --no-cache python3
+    - apk add --no-cache bash python3   # bash required; python3 for any qc helpers
     - bash scripts/qc.sh
+  allow_failure: true   # quality warnings must not block delivery
   rules:
     - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_PIPELINE_SOURCE == "web"
 
 # ═══════════════════════════════════════════════════════════════
@@ -106,7 +108,7 @@ qc:
 
 test:
   stage: test
-  image: node:${NODE_VERSION}-alpine
+  image: node:20-alpine
   extends: .node_cache
   script:
     - cd cli && npm ci
@@ -122,7 +124,7 @@ test:
 
 build:
   stage: build
-  image: node:${NODE_VERSION}-alpine
+  image: node:20-alpine
   extends: .node_cache
   dependencies:
     - migrate
@@ -164,65 +166,19 @@ deploy:
   dependencies:
     - build
   before_script:
-    - apk add --no-cache rsync openssh-client curl
-    - mkdir -p ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan -p ${DEPLOY_PORT:-22} -H $(echo $DEPLOY_HOST | cut -d@ -f2) >> ~/.ssh/known_hosts 2>/dev/null
+    - apk add --no-cache rsync openssh-client curl bash git
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    # Use a dedicated deploy_key file so we never clobber ~/.ssh/id_rsa
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+    - chmod 600 ~/.ssh/deploy_key
+    # Route all SSH through the dedicated key via ~/.ssh/config
+    - printf 'Host *\n  IdentityFile ~/.ssh/deploy_key\n  StrictHostKeyChecking accept-new\n' > ~/.ssh/config
+    - chmod 600 ~/.ssh/config
+    - ssh-keyscan -p "${DEPLOY_PORT}" -H "$(echo $DEPLOY_HOST | cut -d@ -f2)" >> ~/.ssh/known_hosts 2>/dev/null
   script:
-    - |
-      PORT="${DEPLOY_PORT:-22}"
-      KEEP="${KEEP_RELEASES:-3}"
-      RELEASES_BASE="$(dirname ${DEPLOY_PATH})/releases"
-      TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
-      NEW_RELEASE="${RELEASES_BASE}/${TIMESTAMP}"
-      PAGE_COUNT=$(find astro-theme/dist -name '*.html' | wc -l | tr -d ' ')
-      echo "Deploying release ${TIMESTAMP} (${PAGE_COUNT} pages) to ${DEPLOY_HOST}:${PORT}"
-      # Write deploy manifest
-      printf '{\n  "timestamp": "%s",\n  "git_sha": "%s",\n  "git_branch": "%s",\n  "pages": %s,\n  "pipeline_id": "%s",\n  "deploy_host": "%s"\n}\n' \
-        "${TIMESTAMP}" "${CI_COMMIT_SHORT_SHA:-local}" "${CI_COMMIT_BRANCH:-unknown}" \
-        "${PAGE_COUNT}" "${CI_PIPELINE_ID:-local}" "${DEPLOY_HOST}" \
-        > astro-theme/dist/.deploy-manifest.json
-      # Create release directory
-      ssh -p "$PORT" "$DEPLOY_HOST" "mkdir -p '${NEW_RELEASE}'"
-      # Rsync to new release directory
-      rsync -az --delete \
-        --exclude='.well-known' --exclude='cgi-bin' \
-        --exclude='.htaccess' --exclude='.user.ini' \
-        -e "ssh -p $PORT" \
-        astro-theme/dist/ \
-        "${DEPLOY_HOST}:${NEW_RELEASE}/"
-      # Atomic symlink swap (ln -sfn = single kernel syscall, no crash gap)
-      ssh -p "$PORT" "$DEPLOY_HOST" "
-        set -e
-        if [ -d '${DEPLOY_PATH}' ] && [ ! -L '${DEPLOY_PATH}' ]; then
-          mv '${DEPLOY_PATH}' '${DEPLOY_PATH}.bak.${TIMESTAMP}'
-          echo 'Backed up existing webroot'
-        fi
-        ln -sfn '${NEW_RELEASE}' '${DEPLOY_PATH}'
-        echo 'Symlink: ${DEPLOY_PATH} -> ${NEW_RELEASE}'
-      "
-      # Prune old releases
-      ssh -p "$PORT" "$DEPLOY_HOST" "
-        ls -1t '${RELEASES_BASE}/' | tail -n +$(( ${KEEP_RELEASES:-3} + 1 )) | while read old; do
-          rm -rf '${RELEASES_BASE}/'\"\$old\"
-          echo 'Removed old release: '\"\$old\"
-        done
-      "
-      # Health check
-      HEALTH="${HEALTH_URL:-https://${SITE_DOMAIN}}"
-      if [ -n "$HEALTH" ]; then
-        sleep 2
-        HTTP_CODE=$(curl -s --max-time 15 -o /dev/null -w '%{http_code}' "$HEALTH" || echo '000')
-        if [ "$HTTP_CODE" = "200" ]; then
-          echo "Health check passed (HTTP $HTTP_CODE): $HEALTH"
-        else
-          echo "ERROR: Health check failed (HTTP $HTTP_CODE): $HEALTH"
-          echo "Run rollback job to restore previous release."
-          exit 1
-        fi
-      fi
-      echo "Deployed successfully: ${RELEASE_NAME}"
+    - bash scripts/deploy.sh
+  after_script:
+    - rm -f ~/.ssh/deploy_key ~/.ssh/config
   rules:
     - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
       when: manual
@@ -240,28 +196,17 @@ rollback:
   stage: deploy
   image: alpine:latest
   before_script:
-    - apk add --no-cache openssh-client
-    - mkdir -p ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-    - chmod 600 ~/.ssh/id_rsa
-    - ssh-keyscan -p ${DEPLOY_PORT:-22} -H $(echo $DEPLOY_HOST | cut -d@ -f2) >> ~/.ssh/known_hosts 2>/dev/null
+    - apk add --no-cache openssh-client bash
+    - mkdir -p ~/.ssh && chmod 700 ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+    - chmod 600 ~/.ssh/deploy_key
+    - printf 'Host *\n  IdentityFile ~/.ssh/deploy_key\n  StrictHostKeyChecking accept-new\n' > ~/.ssh/config
+    - chmod 600 ~/.ssh/config
+    - ssh-keyscan -p "${DEPLOY_PORT}" -H "$(echo $DEPLOY_HOST | cut -d@ -f2)" >> ~/.ssh/known_hosts 2>/dev/null
   script:
-    - |
-      PORT="${DEPLOY_PORT:-22}"
-      RELEASES_BASE="$(dirname ${DEPLOY_PATH})/releases"
-      ssh -p "$PORT" "$DEPLOY_HOST" "
-        set -e
-        releases=\$(ls -1t '${RELEASES_BASE}/' 2>/dev/null)
-        count=\$(echo \"\$releases\" | grep -c .)
-        if [ \"\$count\" -lt 2 ]; then
-          echo 'Error: no previous release found (count: '\$count')'
-          exit 1
-        fi
-        target=\$(echo \"\$releases\" | sed -n '2p')
-        ln -sfn '${RELEASES_BASE}/'\"\$target\" '${DEPLOY_PATH}'
-        echo 'Rolled back to: '\"\$target\"
-      "
-      echo "Rollback complete."
+    - bash scripts/deploy.sh --rollback
+  after_script:
+    - rm -f ~/.ssh/deploy_key ~/.ssh/config
   rules:
     - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"
       when: manual

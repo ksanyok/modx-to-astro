@@ -218,28 +218,28 @@ async function main() {
  */
 function extractResources(sql) {
   const resources = [];
-  
-  // Find INSERT INTO modx_site_content VALUES section
-  const insertRegex = /INSERT INTO `modx_site_content` VALUES\s*(.+?);\s*$/ms;
-  const match = sql.match(insertRegex);
-  
-  if (!match) {
+
+  // Support both forms produced by different mysqldump versions:
+  //   INSERT INTO `modx_site_content` VALUES (…)
+  //   INSERT INTO `modx_site_content` (id, type, …) VALUES (…)
+  // Use matchAll + g flag so multiple INSERT blocks in one dump are all captured.
+  const insertRegex =
+    /INSERT INTO `modx_site_content`\s*(?:\([^)]+\)\s*)?VALUES\s*(.+?);\s*$/gmsi;
+  const matches = [...sql.matchAll(insertRegex)];
+
+  if (matches.length === 0) {
     log.error('Could not find modx_site_content INSERT statement');
     return resources;
   }
 
-  const valuesStr = match[1];
-  
-  // Parse individual row tuples - they start with ( and end with )
-  // This is tricky because values can contain parentheses, quotes, etc.
-  const rows = parseSQLValues(valuesStr);
-  
-  for (const row of rows) {
-    try {
-      const resource = mapRowToResource(row);
-      resources.push(resource);
-    } catch (err) {
-      log.verbose(`Failed to parse row: ${err.message}`);
+  for (const match of matches) {
+    const rows = parseSQLValues(match[1]);
+    for (const row of rows) {
+      try {
+        resources.push(mapRowToResource(row));
+      } catch (err) {
+        log.verbose(`Failed to parse row: ${err.message}`);
+      }
     }
   }
 
@@ -1358,10 +1358,39 @@ function processContentFields(fields, resourceMap) {
 function processResource(resource, resourceMap, clientConfig) {
   // Skip non-document types we can't migrate
   if (resource.contentType === 'text/xml') return null;
-  
+
   // Handle static resources (PDFs etc.)
   if (resource.class_key === 'modStaticResource') {
     return processStaticResource(resource);
+  }
+
+  // Handle modWebLink (MODX redirect resources).
+  // The content field contains the target reference, e.g. [[~37]]#liefergebiet
+  // These are not content pages — render a meta-refresh + JS redirect so that
+  // any inbound link is forwarded transparently without requiring server config.
+  if (resource.class_key === 'modWebLink') {
+    const rawTarget = resource.content || '';
+    const resolvedTarget = resolveResourceLinks(rawTarget, resourceMap) || '/';
+    let slug = (resource.uri || resource.alias || '').replace(/\.html$/, '').replace(/\/$/, '');
+    if (!slug) return null; // homepage-level weblink — skip
+    return {
+      outputPath: `${slug}.json`,
+      data: {
+        title: decodeHtmlEntities(resource.longtitle || resource.pagetitle),
+        description: '',
+        slug,
+        template: resource.template,
+        menuTitle: decodeHtmlEntities(resource.menutitle || resource.pagetitle),
+        hideMenu: resource.hidemenu === 1,
+        published: resource.published === 1,
+        blocks: [{
+          type: 'html',
+          // meta refresh as universal fallback; JS redirect fires immediately
+          content: `<meta http-equiv="refresh" content="0;url=${resolvedTarget}">` +
+            `<script>window.location.replace('${resolvedTarget.replace(/'/g, "\\'")}')<\/script>`,
+        }],
+      },
+    };
   }
 
   // Extract content blocks from properties JSON
@@ -1692,7 +1721,9 @@ function buildFaqHtml(row, resourceMap) {
 
 function extractClientConfig(sql) {
   const config = {};
-  const insertRegex = /INSERT INTO `modx_clientconfig_setting` VALUES\s*(.+?);\s*$/ms;
+  // Support explicit column list form: INSERT INTO `t` (col1, col2, …) VALUES (…)
+  const insertRegex =
+    /INSERT INTO `modx_clientconfig_setting`\s*(?:\([^)]+\)\s*)?VALUES\s*(.+?);\s*$/ms;
   const match = sql.match(insertRegex);
   if (!match) return config;
 
@@ -1713,7 +1744,9 @@ function extractClientConfig(sql) {
 
 function extractRedirects(sql) {
   const redirects = [];
-  const insertRegex = /INSERT INTO `modx_seosuite_redirect` VALUES\s*(.+?);\s*$/ms;
+  // Support explicit column list form: INSERT INTO `t` (col1, col2, …) VALUES (…)
+  const insertRegex =
+    /INSERT INTO `modx_seosuite_redirect`\s*(?:\([^)]+\)\s*)?VALUES\s*(.+?);\s*$/ms;
   const match = sql.match(insertRegex);
   if (!match) return redirects;
 
