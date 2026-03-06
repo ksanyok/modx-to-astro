@@ -34,3 +34,24 @@
 <IfModule mod_brotli.c>
   AddOutputFilterByType BROTLI_COMPRESS text/html text/css application/javascript
 </IfModule>
+
+# --- BEGIN MIGRATION REDIRECTS (auto-generated) ---
+# These rules are rewritten on every `node migrate.js` run.
+# Edit the SQL data, not this file.
+Redirect 301 /seite-b /seite-a/asdasda.html
+Redirect 301 /seite-a/seite-b.html /seite-a/asdasda.html
+Redirect 301 /home.html /modul-test.html
+Redirect 301 /startseite.html /modul-test.html
+Redirect 301 /test1.html /test2.html
+Redirect 301 /startseite /umbauten-renovationen-sanierungen
+Redirect 301 /handwerk /reinigungen-reinigunsservice-reinigungsfirma
+Redirect 301 /reinigungen /gartenarbeit-gartenhelfer-gaertner
+Redirect 301 /umzug /gartenarbeit-gartenhelfer-gaertner
+Redirect 301 /reinigungen /reinigungen-reinigunsservice-reinigungsfirma
+Redirect 301 /handwerk /umbauten-renovationen-sanierungen
+Redirect 301 /umzugshelfer-umzugsservice-umzugsfirma /gartenarbeit-gartenhelfer-gaertner
+Redirect 301 /handwerk-montagefirma-moebelservice /umbauten-renovationen-sanierungen
+Redirect 301 /ratgeber /ratgeber-umbau-renovation-sanierung
+Redirect 301 /ratgeber-umbau-renovation /ratgeber-umbau-renovation-sanierung
+Redirect 301 /ratgeber-umbau-renovation-baudienstleistungen /ratgeber-umbau-renovation-sanierung
+# --- END MIGRATION REDIRECTS ---

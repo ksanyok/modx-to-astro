@@ -84,9 +84,14 @@ async function main() {
   const clientConfig = extractClientConfig(sqlContent);
   log.info(`Client config: ${Object.keys(clientConfig).length} settings`);
 
-  // 5. Extract SEO redirects
-  const redirects = extractRedirects(sqlContent);
-  log.info(`SEO redirects: ${redirects.length}`);
+  // 5. Extract SEO redirects, resolve chains, remove circular entries
+  const rawRedirects = extractRedirects(sqlContent, resourceMap);
+  log.info(`SEO redirects: ${rawRedirects.length} (raw from SQL)`);
+  const redirects = resolveRedirectChains(rawRedirects);
+  log.info(`SEO redirects: ${redirects.length} (after chain + circular resolution)`);
+
+  // Build old_url → final_url map — used by modWebLink to preserve anchors
+  const redirectMap = new Map(redirects.map(r => [r.old_url, r.new_url]));
 
   // 6. Process each resource
   log.section('Step 2: Processing resources');
@@ -99,7 +104,7 @@ async function main() {
     }
 
     try {
-      const page = processResource(resource, resourceMap, clientConfig);
+      const page = processResource(resource, resourceMap, clientConfig, redirectMap);
       if (page) {
         pages.push(page);
         log.info(`Processed: ${resource.pagetitle} → ${page.outputPath}`);
@@ -166,10 +171,11 @@ async function main() {
   await fs.writeJson(path.join(OUT_PATH, 'site-config.json'), siteConfig, { spaces: 2 });
   log.info('Written: site-config.json');
 
-  // Write redirects
+  // Write redirects as JSON (for Astro config) and as .htaccess rules (server-side 301s)
   if (redirects.length > 0) {
     await fs.writeJson(path.join(OUT_PATH, 'redirects.json'), redirects, { spaces: 2 });
     log.info(`Written: redirects.json (${redirects.length} redirects)`);
+    await writeHtaccessRedirects(redirects, OUT_PATH);
   }
 
   // Copy assets
@@ -632,7 +638,18 @@ function matchCardLinkByHeading(html, resourceMap) {
 
 function resolveResourceLinks(html, resourceMap) {
   if (!html) return html;
-  
+
+  // Resolve common MODX system setting placeholders used in link targets:
+  //   [[++sitestart]]  — the "start page" resource (i.e. the homepage)
+  //   [[++site_url]]   — absolute site URL base
+  // Both map to "/" in an Astro static site.
+  // Note: use string split/join (not regex) because ++ has special regex meaning.
+  html = html.split('[[++sitestart]]').join('/');
+  html = html.split('[[++site_url]]').join('/');
+  // Strip any remaining [[++setting]] tags that we cannot resolve
+  // Regex: \[\[ matches "[[", \+\+ matches "++", [^\]]+ matches setting name, \]\] matches "]]"
+  html = html.replace(/\[\[\+\+[^\]]+\]\]/g, '');
+
   return html.replace(/\[\[~(\d+)\]\]/g, (match, id) => {
     const resource = resourceMap[parseInt(id)];
     if (resource) {
@@ -1355,7 +1372,7 @@ function processContentFields(fields, resourceMap) {
 
 // ─── Resource Processing ────────────────────────────────────────────
 
-function processResource(resource, resourceMap, clientConfig) {
+function processResource(resource, resourceMap, clientConfig, redirectMap = null) {
   // Skip non-document types we can't migrate
   if (resource.contentType === 'text/xml') return null;
 
@@ -1370,7 +1387,15 @@ function processResource(resource, resourceMap, clientConfig) {
   // any inbound link is forwarded transparently without requiring server config.
   if (resource.class_key === 'modWebLink') {
     const rawTarget = resource.content || '';
-    const resolvedTarget = resolveResourceLinks(rawTarget, resourceMap) || '/';
+    // Step 1: resolve [[~N]] placeholders to real paths
+    let resolvedTarget = resolveResourceLinks(rawTarget, resourceMap) || '/';
+    // Step 2: apply SEO Suite redirect chain to the BASE path so that any
+    // #anchor fragment is preserved even when the base path has a 301 redirect.
+    // Without this, the browser strips the hash before the HTTP request, the
+    // server 301s the bare path, and the anchor is silently lost.
+    if (redirectMap) {
+      resolvedTarget = applyRedirectChain(resolvedTarget, redirectMap);
+    }
     let slug = (resource.uri || resource.alias || '').replace(/\.html$/, '').replace(/\/$/, '');
     if (!slug) return null; // homepage-level weblink — skip
     return {
@@ -1742,7 +1767,111 @@ function extractClientConfig(sql) {
 
 // ─── SEO Redirects ──────────────────────────────────────────────────
 
-function extractRedirects(sql) {
+/**
+ * Resolve redirect chains and remove circular/self redirects.
+ *
+ * Input:  [{old_url: '/a', new_url: '/b'}, {old_url: '/b', new_url: '/c'}]
+ * Output: [{old_url: '/a', new_url: '/c'}, {old_url: '/b', new_url: '/c'}]
+ *
+ * Circular redirects (A→B→A) are logged and dropped entirely.
+ */
+function resolveRedirectChains(redirects) {
+  // Build lookup: old_url → redirect entry
+  const byOld = new Map();
+  for (const r of redirects) byOld.set(r.old_url, r);
+
+  const resolved = [];
+
+  for (const r of redirects) {
+    let current = r.new_url;
+    const visited = new Set([r.old_url]);
+
+    // Follow the chain until we reach a URL that has no further redirect
+    while (byOld.has(current) && !visited.has(current)) {
+      visited.add(current);
+      current = byOld.get(current).new_url;
+    }
+
+    if (visited.has(current)) {
+      // Circular: A → B → … → A — drop this entry
+      log.warn(`Circular redirect detected and removed: ${r.old_url} → … → ${current}`);
+      continue;
+    }
+
+    if (current === r.old_url) {
+      // Self-redirect — skip
+      continue;
+    }
+
+    resolved.push({ ...r, new_url: current });
+  }
+
+  return resolved;
+}
+
+/**
+ * Apply the (already chain-resolved) redirect map to a URL, preserving any
+ * hash anchor.  Used by modWebLink resolution so that #fragment is not lost
+ * when the base path is caught by a server-side 301 redirect.
+ *
+ * Example: applyRedirectChain('/startseite#liefergebiet', map)
+ *   where map has /startseite → /speisekarte-pizza-london
+ *   → '/speisekarte-pizza-london#liefergebiet'
+ */
+function applyRedirectChain(url, redirectMap) {
+  const hashIdx = url.indexOf('#');
+  const base   = hashIdx !== -1 ? url.slice(0, hashIdx) : url;
+  const anchor = hashIdx !== -1 ? url.slice(hashIdx)    : '';
+  const resolved = redirectMap.get(base) || base;
+  return resolved + anchor;
+}
+
+/**
+ * Write Apache 301 Redirect rules to astro-theme/public/.htaccess.
+ * Inserts/replaces a clearly marked block so the surrounding cache and
+ * security headers are not disturbed.
+ */
+async function writeHtaccessRedirects(redirects, outPath) {
+  if (redirects.length === 0) return;
+
+  const publicDir    = path.join(outPath, '..', '..', 'public');
+  const htaccessPath = path.join(publicDir, '.htaccess');
+
+  const rules = redirects
+    .map(r => `Redirect ${r.redirect_type} ${r.old_url} ${r.new_url}`)
+    .join('\n');
+
+  const MARKER_START = '# --- BEGIN MIGRATION REDIRECTS (auto-generated) ---';
+  const MARKER_END   = '# --- END MIGRATION REDIRECTS ---';
+
+  const block = [
+    MARKER_START,
+    '# These rules are rewritten on every `node migrate.js` run.',
+    '# Edit the SQL data, not this file.',
+    rules,
+    MARKER_END,
+  ].join('\n');
+
+  let existing = '';
+  try { existing = await fs.readFile(htaccessPath, 'utf-8'); } catch { /* new file */ }
+
+  const si = existing.indexOf(MARKER_START);
+  const ei = existing.indexOf(MARKER_END);
+
+  let updated;
+  if (si !== -1 && ei !== -1) {
+    // Replace existing block
+    updated = existing.slice(0, si) + block + existing.slice(ei + MARKER_END.length);
+  } else {
+    updated = existing.trimEnd() + '\n\n' + block + '\n';
+  }
+
+  await fs.ensureDir(publicDir);
+  await fs.writeFile(htaccessPath, updated.replace(/\n{3,}/g, '\n\n'));
+  log.info(`Written: .htaccess (${redirects.length} redirect rules)`);
+}
+
+function extractRedirects(sql, resourceMap = {}) {
   const redirects = [];
   // Support explicit column list form: INSERT INTO `t` (col1, col2, …) VALUES (…)
   const insertRegex =
@@ -1762,9 +1891,29 @@ function extractRedirects(sql) {
     if (!oldUrl || !newUrl) continue;
     if (active !== undefined && active !== null && String(active) === '0') continue;
 
-    // Normalize URLs — ensure leading slash
-    const normalizedOld = oldUrl.startsWith('/') ? oldUrl : '/' + oldUrl;
-    const normalizedNew = newUrl.startsWith('/') ? newUrl : '/' + newUrl;
+    // Normalize old_url — add leading slash
+    const normalizedOld = (oldUrl.startsWith('/') ? oldUrl : '/' + oldUrl);
+
+    // Normalize new_url:
+    // Some SEO Suite entries store the target as a bare resource ID (e.g. "25") instead
+    // of a path.  Resolve these via the resource map; skip if unresolvable.
+    let normalizedNew;
+    if (/^\d+$/.test(newUrl)) {
+      const res = resourceMap[parseInt(newUrl)];
+      if (!res) {
+        log.verbose(`SEO redirect #${row[0]}: skipping — new_url is resource ID ${newUrl} but resource not found`);
+        continue;
+      }
+      let uri = res.uri || res.alias || '';
+      if (!uri.startsWith('/')) uri = '/' + uri;
+      uri = uri.replace(/\.html$/, '');
+      normalizedNew = uri || '/';
+    } else {
+      normalizedNew = newUrl.startsWith('/') ? newUrl : '/' + newUrl;
+    }
+
+    // Skip self-redirects (source and destination are the same clean path)
+    if (normalizedOld.replace(/\.html$/, '') === normalizedNew.replace(/\.html$/, '')) continue;
 
     redirects.push({
       id: String(row[0]),
