@@ -292,6 +292,70 @@ INSERT INTO \`modx_seosuite_redirect\` VALUES (1,'web',0,'old.html','new','301',
   });
 });
 
+// ─── Redirect Chain Resolution ──────────────────────────────────────
+
+describe('resolveRedirectChains', () => {
+  test('flattens A→B→C into A→C and B→C', () => {
+    const input = [
+      { id: '1', old_url: '/a', new_url: '/b', redirect_type: '301' },
+      { id: '2', old_url: '/b', new_url: '/c', redirect_type: '301' },
+    ];
+    const result = migrate.resolveRedirectChains(input);
+    expect(result).toHaveLength(2);
+    expect(result.find(r => r.old_url === '/a').new_url).toBe('/c');
+    expect(result.find(r => r.old_url === '/b').new_url).toBe('/c');
+  });
+
+  test('removes circular redirects (A→B→A)', () => {
+    const input = [
+      { id: '1', old_url: '/a', new_url: '/b', redirect_type: '301' },
+      { id: '2', old_url: '/b', new_url: '/a', redirect_type: '301' },
+    ];
+    const result = migrate.resolveRedirectChains(input);
+    expect(result).toHaveLength(0);
+  });
+
+  test('deduplicates entries with same old_url (keeps later entry)', () => {
+    const input = [
+      { id: '1', old_url: '/x', new_url: '/old-target', redirect_type: '301' },
+      { id: '2', old_url: '/x', new_url: '/new-target', redirect_type: '301' },
+    ];
+    const result = migrate.resolveRedirectChains(input);
+    expect(result).toHaveLength(1);
+    expect(result[0].new_url).toBe('/new-target');
+  });
+
+  test('removes self-redirects', () => {
+    const input = [
+      { id: '1', old_url: '/same', new_url: '/same', redirect_type: '301' },
+    ];
+    const result = migrate.resolveRedirectChains(input);
+    expect(result).toHaveLength(0);
+  });
+});
+
+// ─── Anchor Preservation ────────────────────────────────────────────
+
+describe('applyRedirectChain', () => {
+  test('preserves anchor through redirect', () => {
+    const map = new Map([['/startseite', '/speisekarte-pizza-london']]);
+    const result = migrate.applyRedirectChain('/startseite#liefergebiet', map);
+    expect(result).toBe('/speisekarte-pizza-london#liefergebiet');
+  });
+
+  test('returns original URL when no redirect exists', () => {
+    const map = new Map();
+    const result = migrate.applyRedirectChain('/no-redirect#section', map);
+    expect(result).toBe('/no-redirect#section');
+  });
+
+  test('works without anchor', () => {
+    const map = new Map([['/old', '/new']]);
+    const result = migrate.applyRedirectChain('/old', map);
+    expect(result).toBe('/new');
+  });
+});
+
 // ─── Content Field Processing ───────────────────────────────────────
 
 describe('processContentFields', () => {

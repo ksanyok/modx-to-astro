@@ -97,6 +97,8 @@ async function main() {
   log.section('Step 2: Processing resources');
   const pages = [];
 
+  const webLinkRedirects = [];
+
   for (const resource of resources) {
     if (resource.deleted) {
       log.verbose(`Skipping deleted: ${resource.pagetitle}`);
@@ -104,10 +106,13 @@ async function main() {
     }
 
     try {
-      const page = processResource(resource, resourceMap, clientConfig, redirectMap);
-      if (page) {
-        pages.push(page);
-        log.info(`Processed: ${resource.pagetitle} → ${page.outputPath}`);
+      const result = processResource(resource, resourceMap, clientConfig, redirectMap);
+      if (result && result._redirect) {
+        webLinkRedirects.push(result);
+        log.info(`WebLink redirect: ${result.old_url} → ${result.new_url}`);
+      } else if (result) {
+        pages.push(result);
+        log.info(`Processed: ${resource.pagetitle} → ${result.outputPath}`);
       }
     } catch (err) {
       log.error(`Failed to process "${resource.pagetitle}": ${err.message}`);
@@ -171,11 +176,12 @@ async function main() {
   await fs.writeJson(path.join(OUT_PATH, 'site-config.json'), siteConfig, { spaces: 2 });
   log.info('Written: site-config.json');
 
-  // Write redirects as JSON (for Astro config) and as .htaccess rules (server-side 301s)
-  if (redirects.length > 0) {
-    await fs.writeJson(path.join(OUT_PATH, 'redirects.json'), redirects, { spaces: 2 });
-    log.info(`Written: redirects.json (${redirects.length} redirects)`);
-    await writeHtaccessRedirects(redirects, OUT_PATH);
+  // Merge SEO Suite redirects with modWebLink redirects and write as .htaccess 301s
+  const allRedirects = [...redirects, ...webLinkRedirects];
+  if (allRedirects.length > 0) {
+    await fs.writeJson(path.join(OUT_PATH, 'redirects.json'), allRedirects, { spaces: 2 });
+    log.info(`Written: redirects.json (${allRedirects.length} redirects — ${redirects.length} SEO Suite + ${webLinkRedirects.length} modWebLink)`);
+    await writeHtaccessRedirects(allRedirects, OUT_PATH);
   }
 
   // Copy assets
@@ -1383,38 +1389,25 @@ function processResource(resource, resourceMap, clientConfig, redirectMap = null
 
   // Handle modWebLink (MODX redirect resources).
   // The content field contains the target reference, e.g. [[~37]]#liefergebiet
-  // These are not content pages — render a meta-refresh + JS redirect so that
-  // any inbound link is forwarded transparently without requiring server config.
+  // These are NOT content pages — they become server-side 301 redirects in
+  // .htaccess so the browser never sees a flash / "Redirecting" page.
   if (resource.class_key === 'modWebLink') {
     const rawTarget = resource.content || '';
     // Step 1: resolve [[~N]] placeholders to real paths
     let resolvedTarget = resolveResourceLinks(rawTarget, resourceMap) || '/';
     // Step 2: apply SEO Suite redirect chain to the BASE path so that any
     // #anchor fragment is preserved even when the base path has a 301 redirect.
-    // Without this, the browser strips the hash before the HTTP request, the
-    // server 301s the bare path, and the anchor is silently lost.
     if (redirectMap) {
       resolvedTarget = applyRedirectChain(resolvedTarget, redirectMap);
     }
     let slug = (resource.uri || resource.alias || '').replace(/\.html$/, '').replace(/\/$/, '');
     if (!slug) return null; // homepage-level weblink — skip
+    // Return a redirect entry (not a page) — handled by main() and written to .htaccess
     return {
-      outputPath: `${slug}.json`,
-      data: {
-        title: decodeHtmlEntities(resource.longtitle || resource.pagetitle),
-        description: '',
-        slug,
-        template: resource.template,
-        menuTitle: decodeHtmlEntities(resource.menutitle || resource.pagetitle),
-        hideMenu: resource.hidemenu === 1,
-        published: resource.published === 1,
-        blocks: [{
-          type: 'html',
-          // meta refresh as universal fallback; JS redirect fires immediately
-          content: `<meta http-equiv="refresh" content="0;url=${resolvedTarget}">` +
-            `<script>window.location.replace('${resolvedTarget.replace(/'/g, "\\'")}')<\/script>`,
-        }],
-      },
+      _redirect: true,
+      old_url: '/' + slug,
+      new_url: resolvedTarget,
+      redirect_type: '301',
     };
   }
 
@@ -1776,11 +1769,12 @@ function extractClientConfig(sql) {
  * Circular redirects (A→B→A) are logged and dropped entirely.
  */
 function resolveRedirectChains(redirects) {
-  // Build lookup: old_url → redirect entry
+  // Build lookup: old_url → redirect entry (last entry wins for duplicates)
   const byOld = new Map();
   for (const r of redirects) byOld.set(r.old_url, r);
 
   const resolved = [];
+  const seen = new Set(); // deduplicate: only keep one entry per old_url
 
   for (const r of redirects) {
     let current = r.new_url;
@@ -1803,7 +1797,18 @@ function resolveRedirectChains(redirects) {
       continue;
     }
 
-    resolved.push({ ...r, new_url: current });
+    // Deduplicate: if we already emitted a redirect for this old_url,
+    // replace it with the later (higher-ID) entry which is more recent.
+    if (seen.has(r.old_url)) {
+      const idx = resolved.findIndex(x => x.old_url === r.old_url);
+      if (idx !== -1) {
+        log.warn(`Duplicate redirect for ${r.old_url}: keeping later entry (→ ${current})`);
+        resolved[idx] = { ...r, new_url: current };
+      }
+    } else {
+      seen.add(r.old_url);
+      resolved.push({ ...r, new_url: current });
+    }
   }
 
   return resolved;
@@ -2307,6 +2312,8 @@ if (typeof module !== 'undefined') {
     mapVerticalAlign,
     mapTrennerWidth,
     buildSiteConfig,
+    resolveRedirectChains,
+    applyRedirectChain,
     parseArgs,
     // Keep main for direct execution
     main,
